@@ -1,0 +1,28 @@
+{
+    "title" : "Foo Configuration",
+    "options" : [
+        {
+            "name" : "anOptionName",
+            "label" : "Option 1",
+            "description" : "The value of the first option",
+            "type" : "string",
+            "default" : "red",
+            "min" : "1",
+            "max" : "5",
+            "inc" : "0.5"
+        },
+        {
+            "name" : "alertInterval",
+            "label" : "Alert interval",
+            "description" : "How often to do alerts",
+            "type" : "number"
+        },
+        {
+            "name" : "users",
+            "label" : "Shoutout Users",
+            "description" : "The usernames of those who get auto shoutouts",
+            "type" : "list",
+            "options" : [ ]
+        }
+    ]
+} 
