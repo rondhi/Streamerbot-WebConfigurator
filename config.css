@@ -40,6 +40,12 @@ body {
 .configGroup {
 }
 
+#footer {
+    display: flex;
+    justify-content: end;
+}
+
+
 .configOption {
     display: flex;
     justify-content: space-between;
