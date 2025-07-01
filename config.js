@@ -1,5 +1,5 @@
 const urlParams = new URLSearchParams(window.location.search);
-const CONFIG_ID = "abc"; //  urlParams.get('configId');
+const CONFIG_SPEC = urlParams.get('config');
 
 const config = {
     "title" : "Foo Configuration",
@@ -100,15 +100,16 @@ async function initConfig()
     try {
         document.getElementById("landingPage").style.display = "none";
         document.getElementById("configContent").style.display = "block";
-        createConfig(config);
-        /*
-        let response = await client.getGlobal(`configSpec-${CONFIG_ID}`, true);
+
+        // createConfig(config);
+
+        console.log(`Fetching config spec ${CONFIG_SPEC}`);
+        let response = await client.getGlobal(CONFIG_SPEC, false);
         if (response.status === "ok") {
             let val = JSON.parse(response.variable.value);
             console.log(`Config value is ${val}`);
             createConfig(val);
-            }
-        */
+        }
         
     } catch (e)
     {
@@ -163,7 +164,7 @@ function createConfig(config)
         // Update the value permanently when changed.
         //
         ui.onChange(() => {
-            client.doAction({name: "Set Config Global"},
+            client.doAction({name: "WC - Set Config Global"},
                              {
                                  "globalName": option.name,
                                  "globalValue": ui.getValue()
