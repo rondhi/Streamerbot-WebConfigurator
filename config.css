@@ -7,6 +7,30 @@ body {
     margin: 1em;
 }
 
+#landingPage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#landingUI {
+    border: solid gray 1px;
+    padding: 1em;
+}
+
+#landingPortConfig {
+    display: flex;
+    flex-direction: row;
+    margin: 1em;
+}
+
+#landingPortConfig > div {
+    display: flex;
+    flex-direction: column;
+    margin: 0.5em;
+}
+
+
 #configArea {
     display: flex;
     flex-direction: column;

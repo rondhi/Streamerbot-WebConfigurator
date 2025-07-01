@@ -8,9 +8,34 @@
   </head>
   
   <body>
-    <h1 id="title"></h1>
-    <hr/>
-    <div id="configArea">
+    <div id="landingPage">
+      <div id="landingUI">
+        <h2>Streamer.bot Extension Configurator</h2>
+        Enter your Streamer.bot WebSocket Server details below
+        <hr/>
+        <div id="landingPortConfig">
+          <div>
+            <label for="landingHost">Host</label>
+            <input type="text" id="landingHost"/>
+          </div>
+          <div>
+            <label for="landingPort">Port</label>
+            <input type="text" id="landingPort" length="4"/>
+          </div>
+          <div>
+            <label for="landingEndpoint">Endpoint</label>
+            <input type="text" id="landingEndpoint" />
+          </div>
+        </div>
+        <input id="landingPageConnect" type="button" value="Connect" style="width: 100%"/>
+      </div>
+    </div>
+    
+    <div id="configContent" style="display: none">
+      <h1 id="title"></h1>
+      <hr/>
+      <div id="configArea">
+      </div>
     </div>
   </body>
   

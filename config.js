@@ -58,13 +58,48 @@ const config = {
     ]
 } ;
 
-const client = new StreamerbotClient({
-    onConnect: initConfig
+// Initialize the websocket parameters UI, and try to connect.
+
+window.addEventListener("load", () => {
+    console.log("Loaded");
+    const store = window.localStorage;
+    document.getElementById("landingHost").value = store.getItem("sbHost") ?? "127.0.0.1";
+    document.getElementById("landingPort").value = store.getItem("sbPort") ?? "8080";
+    document.getElementById("landingEndpoint").value  = store.getItem("sbEndpoint") ?? "/";
+
+    document.getElementById("landingPageConnect").addEventListener("click", attemptConnection);
+
+    attemptConnection();
 });
+
+var client = null;
+function attemptConnection()
+{
+    console.log("Making new streamer.bot client");
+    client?.disconnect();
+    const store = window.localStorage;
+    const host = document.getElementById("landingHost").value;
+    const port = document.getElementById("landingPort").value;
+    const endpoint = document.getElementById("landingEndpoint").value;
+    store.setItem("sbHost", host);
+    store.setItem("sbPort", port);
+    store.setItem("sbEndpoint", endpoint);
+    client = new StreamerbotClient({
+        host: host,
+        port: port,
+        endpoint: endpoint,
+        onConnect: initConfig,
+    });
+}
+
+// Once we've connected to streamer.bot, hide the landing page,
+// and initialize the configuration page.
 
 async function initConfig()
 {
     try {
+        document.getElementById("landingPage").style.display = "none";
+        document.getElementById("configContent").style.display = "block";
         createConfig(config);
         /*
         let response = await client.getGlobal(`configSpec-${CONFIG_ID}`, true);
