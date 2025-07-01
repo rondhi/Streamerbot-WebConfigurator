@@ -92,9 +92,21 @@ function createConfig(config)
     {
         console.log(`creating config option ${option.name}, type ${option.type}`);
 
+        // Create the UI widget representing this option, and insert it
+        
         const ui = makeOptionUI(option);
+        const uielt = ui.getElement()
         const ca = document.getElementById("configArea");
-        ca.appendChild(ui.getElement());
+        if (option.description) {
+            console.log(`Trying to insert description ${option.description}`);
+            // hack: insert the description into an element with the "description" class.
+            const desc = uielt.querySelector(".description");
+            if (desc) {
+                console.log(`got ${desc}`);
+                desc.textContent = option.description;
+            }
+        }
+        ca.appendChild(uielt);
         
         // populate the current stored value
         //
@@ -225,7 +237,7 @@ class InputOption extends OptionUI
     getElement() {
         const elt = makeElt(
         `<div class="configOption">
-          <label for="${this.id}">${this.options.label || this.name}: </label>
+          <label for="${this.id}">${this.options.label || this.name}: <div class="description"></div></label>
           <input class="optionInput" id="${this.id}" type="${this.type}"/>
          </div>`
         );
@@ -345,11 +357,11 @@ class SelectOption extends OptionUI
         }
 
         const elt = makeElt(
-      `<div class="configOption">
-        <label for="${this.id}">${this.options.label || this.name}:</label>
-        <select class="optionInput" id="${this.id}">
-          ${options}
-        </select>`
+        `<div class="configOption">
+         <label for="${this.id}">${this.options.label || this.name}: <div class="description"></div></label>
+         <select class="optionInput" id="${this.id}">
+           ${options}
+         </select>`
         );
         this.selectElt = elt.querySelector("select");
         this.selectElt.addEventListener("change", (event) => {

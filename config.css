@@ -24,12 +24,14 @@ body {
 
     .description {
         font-size: smaller;
+        filter: brightness(0.5);
+    }
+
+    label {
+        margin-right: 1em;
     }
 }
 
-.configOption label {
-    margin-right: 1em;
-}
 
 .configOption .optionInput {
 }
