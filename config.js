@@ -31,7 +31,8 @@ const config = {
             "type" : "number",
             "min" : "1",
             "max" : "5",
-            "inc" : "0.5"
+            "inc" : "0.5",
+            "default" : 4,
         },
         {
             "name" : "users",
@@ -95,11 +96,19 @@ function createConfig(config)
         const ca = document.getElementById("configArea");
         ca.appendChild(ui.getElement());
         
-        // populate the current value.
+        // populate the current stored value
         //
         client.getGlobal(option.name, true).then(({variable: {value}}) => {
             console.log(`got initial value of "${option.name}" = ${value}`);
             ui.setValue(value);
+        }).catch((error) => {
+            // If we couldn't get a current value, presumeably because
+            // it doesn't exist yet, then set the UI to contain the default value,
+            // and then trigger the change callback so that it gets stored.
+            if (option.default !== undefined) {
+                ui.setValue(option.default);
+                ui.change(option.default);
+            }
         });
 
         // Update the value permanently when changed.
@@ -180,7 +189,7 @@ class OptionUI {
             this.changeCallback(newVal);
         }
     }
-
+    
     // Returns a DOM element to insert into the UI to allow the config option
     // to be edited.
     //
@@ -188,11 +197,12 @@ class OptionUI {
         return makeElt(`<div class="configOption">Bogus option "${this.name}"</div>`);
     }
 
-    // Sets the UI to the given value.
+    // Sets the UI to the given VALUE. VALUE should be the appropriate logical
+    // type for the option.
     //
-    setValue(val) {}
+    setValue(value) {}
 
-    // Gets the current value from the UI
+    // Gets the current value from the UI, as the appropriate logical type.
     //
     getValue() { return undefined; }
 }
