@@ -87,6 +87,8 @@ var nextId = 0;
 
 function createConfig(config)
 {
+    const title = config.title ?? "Streamer.bot Extension Config";
+    document.title = title;
     document.getElementById("title").textContent = config.title;
     for (const option of config.options)
     {
