@@ -1,28 +1,56 @@
 {
-    "title" : "Foo Configuration",
+    "title" : "Sample Configuration",
     "options" : [
         {
-            "name" : "anOptionName",
+            "name" : "sample_aString",
+            "type" : "string",
             "label" : "Option 1",
             "description" : "The value of the first option",
-            "type" : "string",
-            "default" : "red",
+            "default" : "red"
+        },
+        {
+            "name" : "sample_password",
+            "type" : "password",
+            "label" : "API Key",
+            "description" : "Your API key"
+        },
+        {
+            "name" : "sample_bool",
+            "label" : "Boolean Setting",
+            "description" : "Boolean true or false",
+            "type" : "bool",
+            "default" : "true"
+        },
+        {
+            "name" : "sample_number",
+            "label" : "a number",
+            "description" : "1-5 by 0.5",
+            "type" : "number",
             "min" : "1",
             "max" : "5",
-            "inc" : "0.5"
+            "inc" : "0.5",
+            "default" : 4
         },
         {
-            "name" : "alertInterval",
-            "label" : "Alert interval",
-            "description" : "How often to do alerts",
-            "type" : "number"
-        },
-        {
-            "name" : "users",
+            "name" : "sample_users",
             "label" : "Shoutout Users",
             "description" : "The usernames of those who get auto shoutouts",
             "type" : "list",
             "options" : [ ]
+        },
+        {
+            "name" : "sample_file",
+            "type" : "file",
+            "label" : "A file chooser for images",
+            "accept" : "image/*"
+        },
+        {
+            "name" : "sample_select",
+            "type" : "select",
+            "values" : [
+                "This", "That", ["other", "The Other"]
+            ]
         }
+
     ]
-} 
+}

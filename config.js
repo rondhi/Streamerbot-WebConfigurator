@@ -1,62 +1,7 @@
 const urlParams = new URLSearchParams(window.location.search);
-const CONFIG_SPEC = urlParams.get('config');
+const CONFIG_VAR = urlParams.get('configVar');
+const CONFIG_URL = urlParams.get('configUrl');
 
-const config = {
-    "title" : "Foo Configuration",
-    "options" : [
-        {
-            "type" : "string",
-            "name" : "anOptionName",
-            "label" : "Option 1",
-            "description" : "The value of the first option",
-            "default" : "red",
-        },
-        {
-            "type" : "password",
-            "name" : "apiKey",
-            "label" : "API Key",
-            "description" : "Your API key",
-        },
-        {
-            "name" : "debug",
-            "label" : "Debug Setting",
-            "description" : "Debugging yes or no",
-            "type" : "bool",
-            "default" : "true",
-        },
-        {
-            "name" : "alertInterval",
-            "label" : "Alert interval",
-            "description" : "How often to do alerts",
-            "type" : "number",
-            "min" : "1",
-            "max" : "5",
-            "inc" : "0.5",
-            "default" : 4,
-        },
-        {
-            "name" : "users",
-            "label" : "Shoutout Users",
-            "description" : "The usernames of those who get auto shoutouts",
-            "type" : "list",
-            "options" : [ ]
-        },
-        {
-            "type" : "file",
-            "name" : "badWords",
-            "label" : "Bad Words file",
-            "accept" : "image/*"
-        },
-        {
-            "type" : "select",
-            "name" : "scene",
-            "values" : [
-                "This", "That", ["other", "The Other"]
-            ]
-        }
-
-    ]
-} ;
 
 // Initialize the websocket parameters UI, and try to connect.
 
@@ -101,14 +46,18 @@ async function initConfig()
         document.getElementById("landingPage").style.display = "none";
         document.getElementById("configContent").style.display = "block";
 
-        // createConfig(config);
 
-        console.log(`Fetching config spec ${CONFIG_SPEC}`);
-        let response = await client.getGlobal(CONFIG_SPEC, false);
-        if (response.status === "ok") {
-            let val = JSON.parse(response.variable.value);
-            console.log(`Config value is ${val}`);
-            createConfig(val);
+        if (CONFIG_VAR) { // Configuration comes from a Streamer.bot temp variable
+            console.log(`Fetching config spec ${CONFIG_VAR}`);
+            let response = await client.getGlobal(CONFIG_VAR, false);
+            if (response.status === "ok") {
+                createConfig(response.variable.value);
+            }
+        } else if (CONFIG_URL) { // Configuration comes from a HTTP fetch
+            let response = await fetch(CONFIG_URL);
+            if (response.status === 200) {
+                createConfig(await response.text());
+            }
         }
         
     } catch (e)
@@ -121,8 +70,11 @@ var nextId = 0;
 
 // Builds out the HTML UI for the list of config variables in CONFIG
 
-function createConfig(config)
+function createConfig(configStr)
 {
+    console.log(`Config value is ${configStr}`);
+    let config = JSON.parse(configStr);
+
     const title = config.title ?? "Streamer.bot Extension Config";
     document.title = title;
     document.getElementById("title").textContent = config.title;
