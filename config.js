@@ -17,6 +17,8 @@ window.addEventListener("load", () => {
     attemptConnection();
 });
 
+// Tries to open a streamerbot client, aborting any currently in progress.
+
 var client = null;
 function attemptConnection()
 {
