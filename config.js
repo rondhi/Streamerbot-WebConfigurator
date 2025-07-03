@@ -11,8 +11,8 @@ window.addEventListener("load", () => {
     document.getElementById("landingHost").value = store.getItem("sbHost") ?? "127.0.0.1";
     document.getElementById("landingPort").value = store.getItem("sbPort") ?? "8080";
     document.getElementById("landingEndpoint").value  = store.getItem("sbEndpoint") ?? "/";
-    document.getElementById("landingPassword").value  = store.getItem("sbPassword") ?? "/";
-    document.getElementById("landingSecure").checked  = store.getItem("sbSecure") ?? "/";
+    document.getElementById("landingPassword").value  = store.getItem("sbPassword") ?? "";
+    document.getElementById("landingSecure").checked  = (store.getItem("sbSecure") === "true");
 
     document.getElementById("landingPageConnect").addEventListener("click", attemptConnection);
 
