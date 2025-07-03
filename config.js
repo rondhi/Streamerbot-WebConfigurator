@@ -11,6 +11,8 @@ window.addEventListener("load", () => {
     document.getElementById("landingHost").value = store.getItem("sbHost") ?? "127.0.0.1";
     document.getElementById("landingPort").value = store.getItem("sbPort") ?? "8080";
     document.getElementById("landingEndpoint").value  = store.getItem("sbEndpoint") ?? "/";
+    document.getElementById("landingPassword").value  = store.getItem("sbPassword") ?? "/";
+    document.getElementById("landingSecure").checked  = store.getItem("sbSecure") ?? "/";
 
     document.getElementById("landingPageConnect").addEventListener("click", attemptConnection);
 
@@ -28,13 +30,19 @@ function attemptConnection()
     const host = document.getElementById("landingHost").value;
     const port = document.getElementById("landingPort").value;
     const endpoint = document.getElementById("landingEndpoint").value;
+    const password = document.getElementById("landingPassword").value;
+    const secure = document.getElementById("landingSecure").checked;
     store.setItem("sbHost", host);
     store.setItem("sbPort", port);
     store.setItem("sbEndpoint", endpoint);
+    store.setItem("sbPassword", password);
+    store.setItem("sbSecure", secure);
     client = new StreamerbotClient({
         host: host,
         port: port,
         endpoint: endpoint,
+        password: password,
+        scheme: secure ? "wss" : "ws",
         onConnect: initConfig,
     });
 }

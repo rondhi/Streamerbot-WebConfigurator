@@ -18,13 +18,14 @@ body {
     padding: 1em;
 }
 
-#landingPortConfig {
+.landingConfigRow {
     display: flex;
     flex-direction: row;
+    justify-content: center;
     margin: 1em;
 }
 
-#landingPortConfig > div {
+.landingConfigRow > div {
     display: flex;
     flex-direction: column;
     margin: 0.5em;
