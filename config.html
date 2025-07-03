@@ -8,6 +8,17 @@
   </head>
   
   <body>
+    <div id="configContent" style="display: none">
+      <h1 id="title"></h1>
+      <hr/>
+      <div id="configArea">
+      </div>
+      <hr/>
+      <div id="footer">
+        <input id="doneButton" type="button" value="Done" onclick="window.close()"/>
+      </div>
+    </div>
+
     <div id="landingPage">
       <div id="landingUI">
         <h2>Streamer.bot Extension Configurator</h2>
@@ -15,7 +26,7 @@
         <hr/>
         <div class="landingConfigRow" id="landingPortConfig">
           <div>
-            <label for="landingHost">Host</label>
+            <label for="landingHost">Address</label>
             <input type="text" id="landingHost"/>
           </div>
           <div>
@@ -41,18 +52,28 @@
           <input id="landingPageConnect" type="button" value="Connect" style="width: 100%"/>
         </div>
       </div>
+      <div id="landingHelp">
+        <h2>Why Are You Seeing This Screen?</h2>
+        <hr/>
+        <p>This page is trying to connect to your Streamer.bot's websocket werver
+          so that it can update your extension's configuration, but is unable to connect.
+        </p>
+        <h3>How Do You Fix It?</h3>
+        <h4>Step 1: Make Sure the Server Is Running</h4>
+        In Streamer.bot, go to the "Servers/Clients" > "WebSocket Server" tab, and press "Start Server".  Then press the "Connect" button above.
+        <center><img style="max-width: 75%" src="start-server.png" /></center>
+        You probably also want to check "Auto Start WebSocket Server", so it runs next time you start Streamer.bot.
+        <h4>Step 2: Verify The WebSocket Settings</h4>
+        If the server is running, but it still won't connect, make sure all of the settings above match Streamer.bot's server settings:
+        <ul>
+          <li><b>Address, Port, Endpoint</b>: should match exactly.</li>
+          <li><b>Password</b>: If "Authentication" is Enabled and a Password is set in Streamer.bot, then enter that same password here.</li>
+          <li><b>Secure Connection</b>: This is only for special situations when you have to use wss or https to tunnel to a remote streamer.bot. You're unlikely to need this, and if you do, you probably don't need this help anyway.</li>
+        </ul>
+        After updating any necessary settings, press the "Connect" button again.
+      </div>
     </div>
     
-    <div id="configContent" style="display: none">
-      <h1 id="title"></h1>
-      <hr/>
-      <div id="configArea">
-      </div>
-      <hr/>
-      <div id="footer">
-        <input id="doneButton" type="button" value="Done" onclick="window.close()"/>
-      </div>
-    </div>
   </body>
   
 </html>

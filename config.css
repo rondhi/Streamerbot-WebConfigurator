@@ -7,10 +7,17 @@ body {
     margin: 1em;
 }
 
+h1, h2, h3 {
+    margin-top: 0px;
+}
+
+/* Styles for the main connection page */
+
 #landingPage {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-direction: column;
 }
 
 #landingUI {
@@ -31,6 +38,18 @@ body {
     margin: 0.5em;
 }
 
+#landingHelp {
+    display: none;
+    border: solid gray 1px;
+    margin: 1em;
+    padding: 1em;
+
+    img {
+        margin: 0.5em;
+    }
+}
+
+/* Styles for the main configuration page */
 
 #configArea {
     display: flex;

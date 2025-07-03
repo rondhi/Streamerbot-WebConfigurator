@@ -5,6 +5,8 @@ const CONFIG_URL = urlParams.get('configUrl');
 
 // Initialize the websocket parameters UI, and try to connect.
 
+let helpTimer;
+
 window.addEventListener("load", () => {
     console.log("Loaded");
     const store = window.localStorage;
@@ -16,7 +18,12 @@ window.addEventListener("load", () => {
 
     document.getElementById("landingPageConnect").addEventListener("click", attemptConnection);
 
+    helpTimer = window.setTimeout(() => {
+        document.getElementById("landingHelp").style.display = "block";
+    }, 2000);
+
     attemptConnection();
+
 });
 
 // Tries to open a streamerbot client, aborting any currently in progress.
@@ -53,6 +60,10 @@ function attemptConnection()
 async function initConfig()
 {
     try {
+        if (helpTimer !== null) {
+            clearTimeout(helpTimer);
+            helpTimer = null;
+        }
         document.getElementById("landingPage").style.display = "none";
         document.getElementById("configContent").style.display = "block";
 
