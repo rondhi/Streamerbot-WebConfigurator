@@ -4,21 +4,23 @@ This Streamer.bot utility lets extension authors add a browser-based UI to their
 
 ### Why Use It?
 
-* Web Configurator is Cross-platform, working equally well on Linux and Mac
-* Independent of the Windows UI framework du jour.
+* You want a nice UI for configuration, but you don't know how or want to create a DLL for Windows UI.
+* HTML UI's are cross-platform, working equally well on Linux and Mac, and Windows
+* Independent of the Windows UI framework du jour, so works equally well across versions of Streamer.bot
 
 ### Why Not Use It?
 
+* Adds a dependency on the WebSocket server, which not all users may have set up. If the configurator can't connect, it will pop up a help page to guide the user through setting it up, but nothing is foolproof.
 * You don't want your configuration kept in Streamer.bot global variables.
 * Your configuration data is too complex to represent as a set of individual values.
 
 ## Usage for Users
 
 When a user installs your extension, they will:
-* Run a particular action in a way that you specified in your instructions, which will then...
-* Bring up your extension's configuration page in their default browser.
-    * They user's websocket server will need to be running
-    * If they aren't using the default websocket server settings, then they will be greeted with a page to enter the correct settings.
+* Run a particular action in a way that you specified in your instructions. OR, you can use the autorun feature of export/import to automatically run the configuration action. This action will...
+* ... bring up your extension's configuration page in their default browser.
+    * The user's websocket server will need to be running
+    * If they aren't, or aren't using the default websocket server settings, then they will be greeted with a page to enter the correct settings, with help to guide them..
 * They will edit the configuration options, which take effect immediately.
 
 (image here)
@@ -140,4 +142,10 @@ Example JSON:
 ```
 
 To see what this looks like in action, visit [Sample Configuration Page](https://webconfig.whazzittoya.com/?configUrl=sample.json)
+
+## The Future
+
+### Help Creating Config JSON.
+
+To set the JSON in an argument, you have to strip all the newlines. This is annoying. If you want to change it later, you probably will need to restore newlines & indenting, edit it, then strip them again. This is even more annoying. The tool should provide an editor to update the JSON & get it into streamer.bot.
 
