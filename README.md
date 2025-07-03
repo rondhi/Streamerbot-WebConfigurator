@@ -27,7 +27,7 @@ When your user runs this action, it will open their browser to a page that allow
 
 You specify the editable options of your extension in a JSON document. This document defines each configuration option that the user may edit.  Each object in the "options" array corresponds to one Streamer.bot global variable containing some piece of configuration data of your extension.
 
-```json
+```javascript
 {
     "title" : "Title of your Extension"
     "options" : [
