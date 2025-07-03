@@ -33,7 +33,7 @@ To include the Web Configurator UI in your extension:
     * Run Action "WC - Open Configuration"
 3. When your extension needs the user's configuration values, use the [Get Global](https://docs.streamer.bot/api/sub-actions/core/globals/global-get) subaction or the C# `CPH.GetGlobalVar` function to fetch its value.
 
-When your user runs this action, it will open their browser to a page that allows them to edit all of the configuration options you specified.
+When your user runs this action, it will open their browser to a page that allows them to edit all of the configuration options you specified. There is an example configuration action in the WebConfigurator import.
 
 ## The Configuration Descriptor
 
