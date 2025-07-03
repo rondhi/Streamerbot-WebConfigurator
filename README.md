@@ -12,7 +12,18 @@ This Streamer.bot utility lets extension authors add a browser-based UI to their
 * You don't want your configuration kept in Streamer.bot global variables.
 * Your configuration data is too complex to represent as a set of individual values.
 
-## Usage
+## Usage for Users
+
+When a user installs your extension, they will:
+* Run a particular action in a way that you specified in your instructions, which will then...
+* Bring up your extension's configuration page in their default browser.
+    * They user's websocket server will need to be running
+    * If they aren't using the default websocket server settings, then they will be greeted with a page to enter the correct settings.
+* They will edit the configuration options, which take effect immediately.
+
+(image here)
+
+## Developer Usage
 
 To include the Web Configurator UI in your extension:
 
@@ -20,7 +31,8 @@ To include the Web Configurator UI in your extension:
 2. As a part of your extension, create a configuration action that the user can invoke (e.g., via a Test trigger). In that action, add the subactions:
     * Set Argument "configSpec" to "{your json config descriptor}" (see below for what this looks like)
     * Run Action "WC - Open Configuration"
-    
+3. When your extension needs the user's configuration values, use the [Get Global](https://docs.streamer.bot/api/sub-actions/core/globals/global-get) subaction or the C# `CPH.GetGlobalVar` function to fetch its value.
+
 When your user runs this action, it will open their browser to a page that allows them to edit all of the configuration options you specified.
 
 ## The Configuration Descriptor
@@ -125,5 +137,7 @@ Example JSON:
 
     ]
 }
-
 ```
+
+To see what this looks like in action, visit [Sample Configuration Page](https://webconfig.whazzittoya.com/?configUrl=sample.json)
+
