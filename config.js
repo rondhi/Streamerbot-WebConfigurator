@@ -180,6 +180,26 @@ function makeElt(html)
     return element = template.content.firstElementChild;
 }
 
+// Returns HTML-encoded text.
+function escapeText(text)
+{
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")  // For double-quoted attributes
+    .replace(/'/g, "&#39;")   // For single-quoted attributes
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function escapeAttr(text) {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")  // For double-quoted attributes
+    .replace(/'/g, "&#39;")   // For single-quoted attributes
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
 //
 // Base class for the UI widgets that edit a single configuration option.
 //
@@ -195,7 +215,7 @@ class OptionUI {
     constructor(name, options) {
         console.log(`Making option ${name}`);
         this.name = name;
-        this.id = `input-${nextId++}-${name}`;
+        this.id = `input-${nextId++}`;
         this.options = options;
     }
 
@@ -217,7 +237,7 @@ class OptionUI {
     // to be edited.
     //
     getElement() {
-        return makeElt(`<div class="configOption">Bogus option "${this.name}"</div>`);
+        return makeElt(`<div class="configOption">Bogus option "${escapeText(this.name)}"</div>`);
     }
 
     // Sets the UI to the given VALUE. VALUE should be the appropriate logical
@@ -248,8 +268,8 @@ class InputOption extends OptionUI
     getElement() {
         const elt = makeElt(
         `<div class="configOption">
-          <label for="${this.id}">${this.options.label || this.name}: <div class="description"></div></label>
-          <input class="optionInput" id="${this.id}" type="${this.type}"/>
+          <label for="${this.id}">${escapeText(this.options.label ?? this.name)}: <div class="description"></div></label>
+          <input class="optionInput" id="${this.id}" type="${escapeAttr(this.type)}"/>
          </div>`
         );
         this.inputElt = elt.querySelector("input");
@@ -364,12 +384,12 @@ class SelectOption extends OptionUI
                 label = value[1];
                 value = value[0];
             }
-            options += `<option value="${value}">${label}</option>`;
+            options += `<option value="${escapeAttr(value)}">${escapeText(label)}</option>`;
         }
 
         const elt = makeElt(
         `<div class="configOption">
-         <label for="${this.id}">${this.options.label || this.name}: <div class="description"></div></label>
+         <label for="${this.id}">${escapeText(this.options.label ?? this.name)}: <div class="description"></div></label>
          <select class="optionInput" id="${this.id}">
            ${options}
          </select>`
