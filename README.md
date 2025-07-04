@@ -1,6 +1,6 @@
 # Web Configurator for Streamer.bot Extensions
 
-This Streamer.bot utility lets extension authors add a browser-based UI to their extension, giving their users an easier way to set up and configure their extension. It is an alternative to telling them to add or edit `Set Argument` subactions, or to code a custom Windows UI with WinForms or WPF.
+This Streamer.bot utility lets extension authors add a browser-based UI to their extension, giving their users an easier way to set up and configure their extension. It is an alternative to telling them to add or edit `Set Argument` subactions, or to code a custom Windows UI with WinForms or WPF, and uses only a simple JSON document to describe the configurable elements.
 
 ![Thumbnail](sample.png "WebConfigurator Example")
 
