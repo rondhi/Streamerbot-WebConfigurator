@@ -2,6 +2,8 @@
 
 This Streamer.bot utility lets extension authors add a browser-based UI to their extension, giving their users an easier way to set up and configure their extension. It is an alternative to telling them to add or edit `Set Argument` subactions, or to code a custom Windows UI with WinForms or WPF.
 
+![Thumbnail](sample.png "WebConfigurator Example")
+
 ### Why Use It?
 
 * You want a nice UI for configuration, but you don't know how or want to create a DLL for Windows UI.
