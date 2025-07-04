@@ -1,0 +1,50 @@
+{
+    "title" : "Sample Configuration",
+    "options" : [
+        {
+            "name" : "<h1>HTML</h1>",
+            "type" : "string",
+            "label" : "<h1>HTML</h1>",
+            "description" : "<h1>HTML</h1>",
+            "default" : "<h1>HTML</h1>"
+        },
+        {
+            "name" : "javascript:alert(\"ATTACK!\")",
+            "type" : "string",
+            "label" : "javascript:alert(\"ATTACK!\")",
+            "description" : "javascript:alert(\"ATTACK!\")",
+            "default" : "javascript:alert(\"ATTACK!\")"
+        },
+        {
+            "name" : "<script>javascript:alert(\"ATTACK!\")</script>",
+            "type" : "string",
+            "label" : "<script>javascript:alert(\"ATTACK!\")</script>",
+            "description" : "<script>javascript:alert(\"ATTACK!\")</script>",
+            "default" : "<script>javascript:alert(\"ATTACK!\")</script>"
+        },
+        {
+            "name" : "<h1>HTML</h1>",
+            "type" : "select",
+            "label" : "<h1>HTML</h1>",
+            "description" : "<h1>HTML</h1>",
+            "default" : "<h1>HTML</h1>",
+            "values" : ["<h1>HTML</h1>", ["<h1>HTML</h1>", "<h1>HTML</h1>"]]
+        },
+        {
+            "name" : "javascript:alert(\"ATTACK!\")",
+            "type" : "select",
+            "label" : "javascript:alert(\"ATTACK!\")",
+            "description" : "javascript:alert(\"ATTACK!\")",
+            "default" : "javascript:alert(\"ATTACK!\")",
+            "values" : ["javascript:alert(\"ATTACK!\")", ["javascript:alert(\"ATTACK!\")", "javascript:alert(\"ATTACK!\")"]]
+        },
+        {
+            "name" : "<script>javascript:alert(\"ATTACK!\")</script>",
+            "type" : "select",
+            "label" : "<script>javascript:alert(\"ATTACK!\")</script>",
+            "description" : "<script>javascript:alert(\"ATTACK!\")</script>",
+            "default" : "<script>javascript:alert(\"ATTACK!\")</script>",
+            "values" : ["<script>javascript:alert(\"ATTACK!\")</script>", ["<script>javascript:alert(\"ATTACK!\")</script>", "<script>javascript:alert(\"ATTACK!\")</script>"]]
+        }
+    ]
+}
