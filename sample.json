@@ -32,13 +32,6 @@
             "default" : 4
         },
         {
-            "name" : "sample_users",
-            "label" : "Shoutout Users",
-            "description" : "The usernames of those who get auto shoutouts",
-            "type" : "list",
-            "options" : [ ]
-        },
-        {
             "name" : "sample_file",
             "type" : "file",
             "label" : "A file chooser for images",
