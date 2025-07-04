@@ -151,3 +151,8 @@ To see what this looks like in action, visit [Sample Configuration Page](https:/
 
 To set the JSON in an argument, you have to strip all the newlines. This is annoying. If you want to change it later, you probably will need to restore newlines & indenting, edit it, then strip them again. This is even more annoying. The tool should provide an editor to update the JSON & get it into streamer.bot.
 
+## Contact Info
+
+For bug reports, or feature requests, [open an issue](https://github.com/WhazzItToYa/Streamerbot-WebConfigurator/issues).
+
+For questions or help, drop a message into the [Discord post](https://discord.com/channels/834650675224248362/1390507952833822781).
