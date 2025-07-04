@@ -7,6 +7,7 @@ This Streamer.bot utility lets extension authors add a browser-based UI to their
 ### Why Use It?
 
 * You want a nice UI for configuration, but you don't know how or want to create a DLL for Windows UI.
+* Your extension contains an action for users to modify configuration in Set Argument's, but they get overwritten when they import new versions.
 * HTML UI's are cross-platform, working equally well on Linux and Mac, and Windows
 * Independent of the Windows UI framework du jour, so works equally well across versions of Streamer.bot
 
