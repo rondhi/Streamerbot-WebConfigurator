@@ -33,10 +33,12 @@ When a user installs your extension, they will:
 To include the Web Configurator UI in your extension:
 
 1. Import the [WebConfigurator.sb](https://raw.githubusercontent.com/WhazzItToYa/Streamerbot-WebConfigurator/refs/heads/main/WebConfig.sb) into your Streamer.bot
-2. As a part of your extension, create a configuration action that the user can invoke (e.g., via a Test trigger). In that action, add the subactions:
+2. Design your extension so that user-configurable data is kept in persistent global variables
+    * When your extension needs the user's configuration values, use the [Get Global](https://docs.streamer.bot/api/sub-actions/core/globals/global-get) subaction or the C# `CPH.GetGlobalVar` function to fetch its value.
+    * Keep in mind that your variables have to co-exist with all other extensions' global variables, so choose names that are likely to be unique to your extension.
+3. As a part of your extension, create an action which the user can invoke to bring up the config editor, say, via a Test trigger, or automatically on import with the Auto Execute feature. In that action, add the subactions:
     * Set Argument "configSpec" to "{your json config descriptor}" (see below for what this looks like)
     * Run Action "WC - Open Configuration"
-3. When your extension needs the user's configuration values, use the [Get Global](https://docs.streamer.bot/api/sub-actions/core/globals/global-get) subaction or the C# `CPH.GetGlobalVar` function to fetch its value.
 
 When your user runs this action, it will open their browser to a page that allows them to edit all of the configuration options you specified. There is an example configuration action in the WebConfigurator import.
 
