@@ -13,7 +13,7 @@ This Streamer.bot utility lets extension authors add a browser-based UI to their
 
 ### Why Not Use It?
 
-* Adds a dependency on the WebSocket server, which not all users may have set up. If the configurator can't connect, it will pop up a help page to guide the user through setting it up, but nothing is foolproof.
+* Adds a dependency on the WebSocket server, which not all users may have set up. The configurator will try to guide them to get it turned on and set up correctly, but nothing is foolproof.
 * You don't want your configuration kept in Streamer.bot global variables.
 * Your configuration data is too complex to represent as a set of individual values.
 
