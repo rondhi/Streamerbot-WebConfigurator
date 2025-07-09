@@ -55,13 +55,12 @@
       <div id="landingHelp">
         <h2>Why Are You Seeing This Screen?</h2>
         <hr/>
-        <p>This page is trying to connect to your Streamer.bot's websocket werver
-          so that it can update your extension's configuration, but is unable to connect.
+        <p>This page is unable to connect to your Streamer.bot's websocket server, so that it can access and update extension configuration.
         </p>
         <h3>How Do You Fix It?</h3>
         <h4>Step 1: Make Sure the Server Is Running</h4>
         In Streamer.bot, go to the "Servers/Clients" > "WebSocket Server" tab, and press "Start Server".  Then press the "Connect" button above.
-        <center><img style="max-width: 75%" src="start-server.png" /></center>
+        <center><img style="max-width: 75%" src="start-server-100.png" /></center>
         You probably also want to check "Auto Start WebSocket Server", so it runs next time you start Streamer.bot.
         <h4>Step 2: Verify The WebSocket Settings</h4>
         If the server is running, but it still won't connect, make sure all of the settings above match Streamer.bot's server settings:
@@ -71,6 +70,11 @@
           <li><b>Secure Connection</b>: This is only for special situations when you have to use wss or https to tunnel to a remote streamer.bot. You're unlikely to need this, and if you do, you probably don't need this help anyway.</li>
         </ul>
         After updating any necessary settings, press the "Connect" button again.
+        <h4>Step 3: Reload</h4>
+        If you are sure the server is running, and the settings are correct, try reloading the page - it might just be stuck between connection attempts.
+        <hr>
+        <h3>Still not working?</h3>
+        Visit the <a href="https://github.com/WhazzItToYa/Streamerbot-WebConfigurator/">Web Configurator Github page</a> for more information, including how to contact the author for help.
       </div>
     </div>
     
