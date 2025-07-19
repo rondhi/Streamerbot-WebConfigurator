@@ -3,6 +3,8 @@
   <head>
     <link rel="stylesheet" href="config.css">
     <title>Streamer.bot Config</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/10.2.0/jsoneditor.css" rel="stylesheet" type="text/css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/10.2.0/jsoneditor.min.js"></script>
     <script type="text/javascript" src="https://unpkg.com/@streamerbot/client/dist/streamerbot-client.js"></script>
     <script type="text/javascript" src="config.js"></script>
   </head>
@@ -17,8 +19,14 @@
       <div id="footer">
         <input id="doneButton" type="button" value="Done" onclick="window.close()"/>
       </div>
-    </div>
+      <div id="configEditor" style="display: none">
+        <hr/>
+        <button id="getJson">Copy JSON to Clipboard</button>
+        <div id="jsonEditor"></div>
 
+      </div>
+    </div>
+    
     <div id="landingPage">
       <div id="landingUI">
         <h2>Streamer.bot Extension Configurator</h2>

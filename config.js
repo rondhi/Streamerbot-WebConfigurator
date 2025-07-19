@@ -1,13 +1,19 @@
 const urlParams = new URLSearchParams(window.location.search);
 const CONFIG_VAR = urlParams.get('configVar');
 const CONFIG_URL = urlParams.get('configUrl');
+const CONNECT = (urlParams.get('connect') ?? "true").match(/true/i);;
+const EDIT = (urlParams.get('edit') ?? "false").match(/true/i);
 
-
-// Initialize the websocket parameters UI, and try to connect.
 
 let helpTimer;
 
 window.addEventListener("load", () => {
+    // Do not connect to streamer.bot
+    if (!CONNECT) {
+        initConfig();
+        return;
+    }
+    
     console.log("Loaded");
     const store = window.localStorage;
     document.getElementById("landingHost").value = store.getItem("sbHost") ?? "127.0.0.1";
@@ -67,24 +73,75 @@ async function initConfig()
         document.getElementById("landingPage").style.display = "none";
         document.getElementById("configContent").style.display = "block";
 
-
+        let configStr;
+        
         if (CONFIG_VAR) { // Configuration comes from a Streamer.bot temp variable
             console.log(`Fetching config spec ${CONFIG_VAR}`);
             let response = await client.getGlobal(CONFIG_VAR, false);
             if (response.status === "ok") {
-                createConfig(response.variable.value);
+                configStr = response.variable.value;
             }
         } else if (CONFIG_URL) { // Configuration comes from a HTTP fetch
             let response = await fetch(CONFIG_URL);
             if (response.status === 200) {
-                createConfig(await response.text());
+                configStr = await response.text();
             }
         }
-        
+        if (configStr) {
+            if (EDIT) {
+                initEditor(configStr);
+            }
+            createConfig(configStr);
+        }
     } catch (e)
     {
         console.log(e);
     }
+}
+
+function initEditor(config)
+{
+    console.log("Initializing editor");
+    document.getElementById("configEditor").style.display = "block";
+    // document.getElementById("jsonEditor").value = configStr;
+    // create the editor
+    const container = document.getElementById("jsonEditor");
+    const editor = new JSONEditor(container, {
+        modes: ["tree", "text"],
+        limitDragging: true,
+        name: "ConfigOptions",
+        mainMenuBar: true,
+        navigationBar: true,
+        statusBar: false,
+        enableSort: false,
+        enableTransform: false,
+        onChange: () => {
+            createConfig(editor.getText());
+        },
+    });
+    console.log(`editor is ${editor}`);
+    
+    // set json
+    const initialJson = JSON.parse(config);
+    editor.set(initialJson)
+    editor.expandAll();
+
+    const getButton = document.getElementById("getJson");
+    getButton.addEventListener("click", () =>
+        {
+            const json = JSON.stringify(editor.get());
+            navigator.clipboard.writeText(json)
+                .then(() => {
+                    getButton.innerText = "Copied!";
+                    setTimeout(() => {
+                        getButton.innerText = "Copy JSON to clipboard";
+                    },
+                               5000);
+                })
+                .catch(err => {
+                    console.error("Failed to copy text: ", err);
+                });
+        });
 }
 
 var nextId = 0;
@@ -93,12 +150,15 @@ var nextId = 0;
 
 function createConfig(configStr)
 {
-    console.log(`Config value is ${configStr}`);
+    // console.log(`Config value is ${configStr}`);
     let config = JSON.parse(configStr);
+    const ca = document.getElementById("configArea");
+    ca.replaceChildren();
 
     const title = config.title ?? "Streamer.bot Extension Config";
     document.title = title;
     document.getElementById("title").textContent = config.title;
+    
     for (const option of config.options)
     {
         console.log(`creating config option ${option.name}, type ${option.type}`);
@@ -107,7 +167,6 @@ function createConfig(configStr)
         
         const ui = makeOptionUI(option);
         const uielt = ui.getElement()
-        const ca = document.getElementById("configArea");
         if (option.description) {
             console.log(`Trying to insert description ${option.description}`);
             // hack: insert the description into an element with the "description" class.
@@ -121,10 +180,12 @@ function createConfig(configStr)
         
         // populate the current stored value
         //
-        client.getGlobal(option.name, true).then(({variable: {value}}) => {
-            console.log(`got initial value of "${option.name}" = ${value}`);
-            ui.setValue(value);
-        }).catch((error) => {
+        (async () => {
+            return client.getGlobal(option.name, true).then(({variable: {value}}) => {
+                console.log(`got initial value of "${option.name}" = ${value}`);
+                ui.setValue(value);
+            });
+        })().catch((error) => {
             // If we couldn't get a current value, presumeably because
             // it doesn't exist yet, then set the UI to contain the default value,
             // and then trigger the change callback so that it gets stored.
@@ -133,16 +194,18 @@ function createConfig(configStr)
                 ui.change(option.default);
             }
         });
-
+        
         // Update the value permanently when changed.
         //
-        ui.onChange(() => {
-            client.doAction({name: "WC - Set Config Global"},
-                             {
-                                 "globalName": option.name,
-                                 "globalValue": ui.getValue()
-                             });
-        });
+        if (client) {
+            ui.onChange(() => {
+                client.doAction({name: "WC - Set Config Global"},
+                                {
+                                    "globalName": option.name,
+                                    "globalValue": ui.getValue()
+                                });
+            });
+        };
         
      }
 }
