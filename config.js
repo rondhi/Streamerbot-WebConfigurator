@@ -3,6 +3,14 @@ const CONFIG_VAR = urlParams.get('configVar');
 const CONFIG_URL = urlParams.get('configUrl');
 const CONNECT = (urlParams.get('connect') ?? "true").match(/true/i);;
 const EDIT = (urlParams.get('edit') ?? "false").match(/true/i);
+const DEBUGMODE = (urlParams.get('debug') ?? "false").match(/true/i);
+
+function DEBUG(msg)
+{
+    if (DEBUGMODE) {
+        console.debug(`WEBCONFIG: ${(new Date()).toISOString()}: ${msg}`);
+    }
+}
 
 
 let helpTimer;
@@ -14,7 +22,7 @@ window.addEventListener("load", () => {
         return;
     }
     
-    console.log("Loaded");
+    DEBUG("Loaded");
     const store = window.localStorage;
     document.getElementById("landingHost").value = store.getItem("sbHost") ?? "127.0.0.1";
     document.getElementById("landingPort").value = store.getItem("sbPort") ?? "8080";
@@ -37,7 +45,7 @@ window.addEventListener("load", () => {
 var client = null;
 function attemptConnection()
 {
-    console.log("Making new streamer.bot client");
+    DEBUG(`${client}?.disconnect()`);
     client?.disconnect();
     const store = window.localStorage;
     const host = document.getElementById("landingHost").value;
@@ -50,14 +58,32 @@ function attemptConnection()
     store.setItem("sbEndpoint", endpoint);
     store.setItem("sbPassword", password);
     store.setItem("sbSecure", secure);
+    const scheme = secure ? "wss" : "ws";
+    DEBUG(`Making new client to ${scheme}://${host}:${port}${endpoint}`);
     client = new StreamerbotClient({
         host: host,
         port: port,
         endpoint: endpoint,
         password: password,
-        scheme: secure ? "wss" : "ws",
-        onConnect: initConfig,
+        scheme: scheme,
+        logLevel: DEBUGMODE ? "verbose" : "info",
+        onConnect: wsConnected,
+
+        onError: (err) => {
+            console.error('Streamer.bot Client Error', err);
+        },
+
+        onDisconnect: () => {
+             console.warn('Streamer.bot Client Disconected!');
+        },
     });
+    DEBUG(`New client: ${client}`);
+}
+
+async function wsConnected(event)
+{
+    DEBUG(`Websocket connected: ${JSON.stringify(event, null, 2)}`);
+    setTimeout(initConfig, 2000);
 }
 
 // Once we've connected to streamer.bot, hide the landing page,
@@ -76,18 +102,20 @@ async function initConfig()
         let configStr;
         
         if (CONFIG_VAR) { // Configuration comes from a Streamer.bot temp variable
-            console.log(`Fetching config spec ${CONFIG_VAR}`);
+            DEBUG(`Fetching config spec ${CONFIG_VAR}`);
             let response = await client.getGlobal(CONFIG_VAR, false);
             if (response.status === "ok") {
                 configStr = response.variable.value;
             }
         } else if (CONFIG_URL) { // Configuration comes from a HTTP fetch
+            DEBUG(`Fetching sample config from ${CONFIG_URL}`);
             let response = await fetch(CONFIG_URL);
             if (response.status === 200) {
                 configStr = await response.text();
             }
         }
         if (configStr) {
+            DEBUG(`Got config`);
             if (EDIT) {
                 initEditor(configStr);
             }
@@ -95,13 +123,13 @@ async function initConfig()
         }
     } catch (e)
     {
-        console.log(e);
+        DEBUG(e);
     }
 }
 
 function initEditor(config)
 {
-    console.log("Initializing editor");
+    DEBUG("Initializing editor");
     document.getElementById("configEditor").style.display = "block";
     // document.getElementById("jsonEditor").value = configStr;
     // create the editor
@@ -119,7 +147,7 @@ function initEditor(config)
             createConfig(editor.getText());
         },
     });
-    console.log(`editor is ${editor}`);
+    DEBUG(`editor is ${editor}`);
     
     // set json
     const initialJson = JSON.parse(config);
@@ -150,7 +178,7 @@ var nextId = 0;
 
 function createConfig(configStr)
 {
-    // console.log(`Config value is ${configStr}`);
+    // DEBUG(`Config value is ${configStr}`);
     let config = JSON.parse(configStr);
     const ca = document.getElementById("configArea");
     ca.replaceChildren();
@@ -161,18 +189,18 @@ function createConfig(configStr)
     
     for (const option of config.options)
     {
-        console.log(`creating config option ${option.name}, type ${option.type}`);
+        // DEBUG(`creating config option ${option.name}, type ${option.type}`);
 
         // Create the UI widget representing this option, and insert it
         
         const ui = makeOptionUI(option);
         const uielt = ui.getElement()
         if (option.description) {
-            console.log(`Trying to insert description ${option.description}`);
+            // DEBUG(`Trying to insert description ${option.description}`);
             // hack: insert the description into an element with the "description" class.
             const desc = uielt.querySelector(".description");
             if (desc) {
-                console.log(`got ${desc}`);
+                // DEBUG(`got ${desc}`);
                 desc.textContent = option.description;
             }
         }
@@ -181,8 +209,9 @@ function createConfig(configStr)
         // populate the current stored value
         //
         (async () => {
+            DEBUG(`Requesting current value of ${option.name}`);
             return client.getGlobal(option.name, true).then(({variable: {value}}) => {
-                console.log(`got initial value of "${option.name}" = ${value}`);
+                DEBUG(`received current value of "${option.name}" = ${value}`);
                 ui.setValue(value);
             });
         })().catch((error) => {
@@ -276,7 +305,7 @@ class OptionUI {
     // OPTIONS: The json object of the options spec.
     //
     constructor(name, options) {
-        console.log(`Making option ${name}`);
+        // DEBUG(`Making option ${name}`);
         this.name = name;
         this.id = `input-${nextId++}`;
         this.options = options;
