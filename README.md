@@ -89,57 +89,55 @@ Example JSON:
 
 ```json
 {
-    "title" : "Title of your Extension"
+    "title" : "Sample Configuration Title",
     "options" : [
         {
-            "name" : "sample_aString",
+            "name" : "sampleString",
             "type" : "string",
-            "label" : "Option 1",
-            "description" : "The value of the first option",
-            "default" : "red"
+            "label" : "Sample String",
+            "description" : "A text value",
+            "default" : "default text"
         },
         {
-            "name" : "sample_password",
-            "type" : "password",
-            "label" : "API Key",
-            "description" : "Your API key"
-        },
-        {
-            "name" : "sample_bool",
-            "label" : "Boolean Setting",
-            "description" : "Boolean true or false",
-            "type" : "bool",
-            "default" : "true"
-        },
-        {
-            "name" : "sample_number",
-            "label" : "a number",
-            "description" : "1-5 by 0.5",
+            "name" : "sampleNumber",
             "type" : "number",
+            "label" : "Sample Number",
+            "description" : "A number with optional min, max, and increments",
             "min" : "1",
-            "max" : "5",
+            "max" : "10",
             "inc" : "0.5",
             "default" : 4
         },
         {
-            "name" : "sample_users",
-            "label" : "Shoutout Users",
-            "description" : "The usernames of those who get auto shoutouts",
-            "type" : "list",
-            "options" : [ ]
+            "name" : "sampleBoolean",
+            "type" : "bool",
+            "label" : "Sample Boolean",
+            "description" : "a true or false value",
+            "default" : true
         },
         {
-            "name" : "sample_file",
-            "type" : "file",
-            "label" : "A file chooser for images",
-            "accept" : "image/*"
-        },
-        {
-            "name" : "sample_select",
+            "name" : "sampleSelect",
             "type" : "select",
+            "label" : "Sample Selection",
+            "description" : "A list of simple values, or values and their labels",
             "values" : [
-                "This", "That", ["other", "The Other"]
-            ]
+                "Value1", "Value2", ["Value3", "Value3's Label"]
+            ],
+            "default" : "Value2"
+        },
+        {
+            "name" : "samplePassword",
+            "type" : "password",
+            "label" : "Sample Password",
+            "description" : "Keep it secret, keep it safe.",
+            "default" : "hunter2"
+        },
+        {
+            "name" : "sampleFile",
+            "type" : "file",
+            "label" : "Sample File",
+            "description" : "A chooser for file paths, with optional type filter",
+            "accept" : "image/*"
         }
 
     ]
@@ -147,12 +145,6 @@ Example JSON:
 ```
 
 To see what this looks like in action, visit [Sample Configuration Page](https://webconfig.whazzittoya.com/?configUrl=sample.json)
-
-## The Future
-
-### Help Creating Config JSON.
-
-To set the JSON in an argument, you have to strip all the newlines. This is annoying. If you want to change it later, you probably will need to restore newlines & indenting, edit it, then strip them again. This is even more annoying. The tool should provide an editor to update the JSON & get it into streamer.bot.
 
 ## Contact Info
 
