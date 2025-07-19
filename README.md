@@ -37,10 +37,26 @@ To include the Web Configurator UI in your extension:
     * When your extension needs the user's configuration values, use the [Get Global](https://docs.streamer.bot/api/sub-actions/core/globals/global-get) subaction or the C# `CPH.GetGlobalVar` function to fetch its value.
     * Keep in mind that your variables have to co-exist with all other extensions' global variables, so choose names that are likely to be unique to your extension.
 3. As a part of your extension, create an action which the user can invoke to bring up the config editor, say, via a Test trigger, or automatically on import with the Auto Execute feature. In that action, add the subactions:
-    * Set Argument "configSpec" to "{your json config descriptor}" (see below for what this looks like)
+    * Set Argument "configSpec" to "{your json config descriptor}". See [the section below](#the-configuration-descriptor) for a description of what this is.
     * Run Action "WC - Open Configuration"
 
 When your user runs this action, it will open their browser to a page that allows them to edit all of the configuration options you specified. There is an example configuration action in the WebConfigurator import.
+
+### Configuration Editor
+
+You can run the configurator page in editor mode, which allows you to edit the json, and live-updates the corresponding config UI. To activate, add the following query argument to the URL:
+
+  `&edit=true`
+
+A good place to start creating a brand new configuration for your extension is to [edit the Sample Configuration Page](https://webconfig.whazzittoya.com/?connect=false&edit=true&configUrl=sample.json), copying and modifying the various options.
+
+Once you have the configuration the way you like it, press the "Copy to clipboard" button and you'll get a compact version of the JSON that you can paste into your configuration action.
+
+### Offline Mode
+
+If for some reason, you cannot or do not want to connect the Web UI page to Streamer.bot, you can run it in offline mode by adding the query argument:
+
+  `&connect=false`
 
 ## The Configuration Descriptor
 
@@ -144,7 +160,7 @@ Example JSON:
 }
 ```
 
-To see what this looks like in action and to edit your own configuration, visit [Sample Configuration Page](https://webconfig.whazzittoya.com/?connect=false&edit=true&configUrl=sample.json)
+To see what this looks like in action and to edit your own configuration, visit [Sample Configuration Page](https://webconfig.whazzittoya.com/?connect=false&configUrl=sample.json)
 
 ## Contact Info
 
