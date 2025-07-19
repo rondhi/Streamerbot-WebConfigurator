@@ -144,7 +144,7 @@ Example JSON:
 }
 ```
 
-To see what this looks like in action, visit [Sample Configuration Page](https://webconfig.whazzittoya.com/?configUrl=sample.json)
+To see what this looks like in action and to edit your own configuration, visit [Sample Configuration Page](https://webconfig.whazzittoya.com/?connect=false&edit=true&configUrl=sample.json)
 
 ## Contact Info
 
