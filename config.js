@@ -5,10 +5,10 @@ const CONNECT = (urlParams.get('connect') ?? "true").match(/true/i);;
 const EDIT = (urlParams.get('edit') ?? "false").match(/true/i);
 const DEBUGMODE = (urlParams.get('debug') ?? "false").match(/true/i);
 
-function DEBUG(msg)
+function DEBUG(...args)
 {
     if (DEBUGMODE) {
-        console.debug(`WEBCONFIG: ${(new Date()).toISOString()}: ${msg}`);
+        console.debug(`WEBCONFIG: ${(new Date()).toISOString()}`, ...args);
     }
 }
 
@@ -74,8 +74,13 @@ function attemptConnection()
         },
 
         onDisconnect: () => {
-             console.warn('Streamer.bot Client Disconected!');
+            console.warn('Streamer.bot Client Disconected!');
         },
+
+        onData: (data) => {
+            DEBUG('Streamer.bot Data Received', data);
+        },
+        
     });
     DEBUG(`New client: ${client}`);
 }
