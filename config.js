@@ -247,25 +247,32 @@ function createConfig(configStr)
 // Creates the OptionUI object that implements the json OPTION.
 function makeOptionUI(option)
 {
-    switch (option.type)
+    try {
+        switch (option.type)
+        {
+            case "string":
+            case "text":
+                return new TextOption(option.name, option);
+            case "password":
+                return new PasswordOption(option.name, option);
+            case "slider":
+                return new NumberSliderOption(option.name, option);
+            case "number":
+                return new NumberOption(option.name, option);
+            case "bool":
+            case "boolean":
+                return new BoolOption(option.name, option);
+            case "file":
+                return new FileOption(option.name, option);
+            case "select":
+                return new SelectOption(option.name, option);
+            
+            default:
+                return new ErrorUI(option.name, `unknown option type "${option.type}"`, option);
+        }
+    } catch (e)
     {
-        case "string":
-        case "text":
-          return new TextOption(option.name, option);
-        case "password":
-          return new PasswordOption(option.name, option);
-        case "number":
-          return new NumberOption(option.name, option);
-        case "bool":
-        case "boolean":
-          return new BoolOption(option.name, option);
-        case "file":
-          return new FileOption(option.name, option);
-        case "select":
-          return new SelectOption(option.name, option);
-        
-        default:
-          return new OptionUI(option.name);
+        return new ErrorUI(option.name, `${e}`, option);
     }
 }
 
@@ -347,6 +354,18 @@ class OptionUI {
     getValue() { return undefined; }
 }
 
+// When you want to show an option that
+class ErrorUI extends OptionUI {
+    constructor(name, message, options) {
+        super(name, options);
+        this.message = message;
+    }
+    getElement() {
+        return makeElt(`<div class="configOption"><label>${escapeText(this.options.label ?? this.name)}: <div class="errorDescription">${escapeText(this.message)}</div></label>`);
+    }
+    
+}
+
 // Base class for UI based on the <input> tag.
 //
 class InputOption extends OptionUI
@@ -366,7 +385,7 @@ class InputOption extends OptionUI
         const elt = makeElt(
         `<div class="configOption">
           <label for="${this.id}">${escapeText(this.options.label ?? this.name)}: <div class="description"></div></label>
-          <input class="optionInput" id="${this.id}" type="${escapeAttr(this.type)}"/>
+          <div class="optionWidget"><input class="optionInput" id="${this.id}" type="${escapeAttr(this.type)}"/></div>
          </div>`
         );
         this.inputElt = elt.querySelector("input");
@@ -425,7 +444,85 @@ class NumberOption extends InputOption {
     }
     
 }
-  
+
+// Specific Option UI for numbers.
+// OPTIONS: must contain:
+//   * min : the minimum value
+//   * max : the maximum value
+// May contain:
+//   * inc : The value increments.
+//
+// Note: This is a type of Number option, but there are enough internal differences
+// to warrant an entirely custom implementation. Perhaps if warranted later,
+// some refactoring to allow the slider to extend Number is warranted.
+class NumberSliderOption extends OptionUI {
+    constructor(name, options) {
+        super(name, options);
+
+        if (!("min" in this.options) ||
+            !("max" in this.options))
+        {
+            throw new Error("Sliders require min and max properties");
+        }
+    }
+
+    numberElt;
+    sliderElt;
+    
+    getElement() {
+        const elt = makeElt(
+        `<div class="configOption">
+          <label for="${this.id}">${escapeText(this.options.label ?? this.name)}: <div class="description"></div></label>
+          <div class="optionWidget">
+            <input class="optionSlider" style="text-align: right" id="${this.id}-slider" type="range" />
+            <input class="optionInput" id="${this.id}-number" type="number"/>
+          </div>
+         </div>`
+        );
+        this.numberElt = elt.querySelector(`#${this.id}-number`);
+        this.sliderElt = elt.querySelector(`#${this.id}-slider`);
+
+        // Configure both input widgets
+        this.numberElt.min = this.options.min;
+        this.sliderElt.min = this.options.min;
+
+        this.numberElt.max = this.options.max;
+        this.sliderElt.max = this.options.max;
+
+        if ("inc" in this.options) {
+            this.numberElt.step = this.options.inc;
+            this.sliderElt.step = this.options.inc;
+        }
+
+        // Sync both widgets when either changes, and fire the change handler.
+        this.numberElt.addEventListener("change", (event) => {
+            let val = this.numberElt.value;
+            this.sliderElt.value = val;
+            this.change(val);
+        });
+        this.sliderElt.addEventListener("change", (event) => {
+            let val = this.sliderElt.value;
+            this.numberElt.value = val;
+            this.change(val);
+        });
+        // Also provide feedback as it's being slid
+        this.sliderElt.addEventListener("input", (event) => {
+            let val = this.sliderElt.value;
+            this.numberElt.value = val;
+        });
+        return elt;
+    }
+    
+    getValue() {
+        return this.numberElt.value;
+    }
+
+    setValue(newVal) {
+        this.sliderElt.value = newVal;
+        this.numberElt.value = newVal;
+    }
+}
+
 // Specific Option UI for booleans.
 
 class BoolOption extends InputOption {
@@ -487,9 +584,10 @@ class SelectOption extends OptionUI
         const elt = makeElt(
         `<div class="configOption">
          <label for="${this.id}">${escapeText(this.options.label ?? this.name)}: <div class="description"></div></label>
-         <select class="optionInput" id="${this.id}">
+         <div class="optionWidget">
+           <select class="optionInput" id="${this.id}">
            ${options}
-         </select>`
+           </select></div>`
         );
         this.selectElt = elt.querySelector("select");
         this.selectElt.addEventListener("change", (event) => {

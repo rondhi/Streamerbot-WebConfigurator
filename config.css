@@ -72,9 +72,13 @@ h1, h2, h3 {
     padding: 0.25em;
     border-bottom: solid #333 1px;
 
-    .description {
+    .description, .errorDescription {
         font-size: smaller;
         filter: brightness(0.5);
+    }
+    .errorDescription {
+        color: red;
+        filter: none;
     }
 
     label {
@@ -83,13 +87,23 @@ h1, h2, h3 {
 }
 
 
-.configOption .optionInput {
+.configOption .optionWidget {
+    display: flex;
+    flex-grow: 0.8;
+    justify-content: end;
 }
 
 
 .optionInput[type="text"],
-.optionInput[type="password"] {
-    flex-grow: 0.8;
+.optionInput[type="password"],
+.optionSlider {
+    width: 100%;
+    flex: 1;
+    min-width: 0;
+}
+
+input[type="number"] {
+    width: 10ch;
 }
 
 /* Styles for the editor */

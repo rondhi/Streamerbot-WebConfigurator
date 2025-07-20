@@ -76,12 +76,12 @@ You specify the editable options of your extension in a JSON document. This docu
 
             // Other options depending on "type":
             
-            // For "number" type:
+            // For "number" or "slider" type:
             
-            "min" : 5,  // (optional) smallest number you can configure
-            "max" : 10, // (optional) largest number you can configure
+            "min" : 5,  // (required for slider) smallest number you can configure
+            "max" : 10, // (required for slider) largest number you can configure
             "inc" : 0.5, // (optional) Allowed increments of the number
-            
+
             // For "select" (i.e., dropdown list)
             
             "values" : [
@@ -122,6 +122,16 @@ Example JSON:
             "min" : "1",
             "max" : "10",
             "inc" : "0.5",
+            "default" : 4
+        },
+        {
+            "name" : "sampleSlider",
+            "type" : "slider",
+            "label" : "Sample Slider",
+            "description" : "A number slider with required min, max, and increments",
+            "min" : "0",
+            "max" : "100",
+            "inc" : "1",
             "default" : 4
         },
         {

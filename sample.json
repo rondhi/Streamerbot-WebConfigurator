@@ -19,6 +19,16 @@
             "default" : 4
         },
         {
+            "name" : "sampleSlider",
+            "type" : "slider",
+            "label" : "Sample Slider",
+            "description" : "A number slider with required min, max, and optional inc-rements",
+            "min" : "0",
+            "max" : "100",
+            "inc" : "1",
+            "default" : 4
+        },
+        {
             "name" : "sampleBoolean",
             "type" : "bool",
             "label" : "Sample Boolean",
