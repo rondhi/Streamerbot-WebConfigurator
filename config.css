@@ -3,8 +3,18 @@ html {
 }
 
 body {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    margin: 0px;
+    padding: 1em;
+    min-height: 100vh;
     font-family: Inter,"Inter Fallback: Arial",sans-serif;
-    margin: 1em;
+    box-sizing: border-box;
+}
+
+.footer {
+    text-align: center;
 }
 
 h1, h2, h3 {
@@ -60,9 +70,16 @@ h1, h2, h3 {
 .configGroup {
 }
 
-#footer {
+#configFooter {
     display: flex;
-    justify-content: end;
+
+    #extensionInfo {
+        margin-left: auto;
+        margin-right: auto;
+    }
+    #doneButton {
+        margin-left: 0px;
+    }
 }
 
 

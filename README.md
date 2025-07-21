@@ -64,7 +64,10 @@ You specify the editable options of your extension in a JSON document. This docu
 
 ```javascript
 {
-    "title" : "Title of your Extension"
+    "title" : "Title of Extension Config Page"
+    "extensionText" : "Sample Extension",                   // (optional) text to display about the extension
+    "extensionURL" : "https://example.com/SampleExtension", // (optional) link to more info about the extension
+    
     "options" : [
         {
             "name" : "welcomeMessage", // S.bot variable name

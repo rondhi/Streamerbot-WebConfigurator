@@ -1,5 +1,7 @@
 {
     "title" : "Sample Configuration Title",
+    "extensionText" : "Sample Extension",
+    "extensionURL" : "https://example.com/SampleExtension",
     "options" : [
         {
             "name" : "sampleString",

@@ -114,7 +114,7 @@ async function initConfig()
             }
         } else if (CONFIG_URL) { // Configuration comes from a HTTP fetch
             DEBUG(`Fetching sample config from ${CONFIG_URL}`);
-            let response = await fetch(CONFIG_URL);
+            let response = await fetch(`${CONFIG_URL}?v=${Date.now()}`);
             if (response.status === 200) {
                 configStr = await response.text();
             }
@@ -188,9 +188,19 @@ function createConfig(configStr)
     const ca = document.getElementById("configArea");
     ca.replaceChildren();
 
+    // Set the page & header title
     const title = config.title ?? "Streamer.bot Extension Config";
     document.title = title;
     document.getElementById("title").textContent = config.title;
+
+    // Add a link to the extension, if supplied
+    if (config.extensionURL) {
+        const extLink = document.getElementById("extensionLink");
+        extLink.href = config.extensionURL;
+        extLink.innerText = config.extensionText;
+    } else if (config.extensionText) {
+        document.getElementById("extensionText").innerText = config.extensionText;
+    }
     
     for (const option of config.options)
     {
