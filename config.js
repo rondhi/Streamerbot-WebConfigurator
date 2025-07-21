@@ -194,12 +194,15 @@ function createConfig(configStr)
     document.getElementById("title").textContent = config.title;
 
     // Add a link to the extension, if supplied
+    const extLink = document.getElementById("extensionLink");
+    const extText = document.getElementById("extensionText");
     if (config.extensionURL) {
-        const extLink = document.getElementById("extensionLink");
         extLink.href = config.extensionURL;
         extLink.innerText = config.extensionText;
+        extText.innerText = "";
     } else if (config.extensionText) {
-        document.getElementById("extensionText").innerText = config.extensionText;
+        extLink.innerText = "";
+        extText.innerText = config.extensionText;
     }
     
     for (const option of config.options)
