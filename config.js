@@ -204,6 +204,9 @@ function createConfig(configStr)
         extLink.innerText = "";
         extText.innerText = config.extensionText;
     }
+
+    let conditionals = [];
+    let widgets = {};
     
     for (const option of config.options)
     {
@@ -212,6 +215,8 @@ function createConfig(configStr)
         // Create the UI widget representing this option, and insert it
         
         const ui = makeOptionUI(option);
+        widgets[ui.name] = ui;
+        
         const uielt = ui.getElement()
         if (option.description) {
             // DEBUG(`Trying to insert description ${option.description}`);
@@ -222,6 +227,12 @@ function createConfig(configStr)
                 desc.textContent = option.description;
             }
         }
+
+        // Add conditional enablement if specified.
+        if (option.dependsOn) {
+            conditionals.push([uielt, option.dependsOn]);
+        }
+        
         ca.appendChild(uielt);
         
         // populate the current stored value
@@ -231,6 +242,7 @@ function createConfig(configStr)
             return client.getGlobal(option.name, true).then(({variable: {value}}) => {
                 DEBUG(`received current value of "${option.name}" = ${value}`);
                 ui.setValue(value);
+                ui.triggerValueCallbacks();
             });
         })().catch((error) => {
             // If we couldn't get a current value, presumeably because
@@ -239,6 +251,8 @@ function createConfig(configStr)
             if (option.default !== undefined) {
                 ui.setValue(option.default);
                 ui.change(option.default);
+            } else {
+                ui.triggerValueCallbacks();
             }
         });
         
@@ -254,7 +268,9 @@ function createConfig(configStr)
             });
         };
         
-     }
+    }
+
+    addConditionals(widgets, conditionals);
 }
 
 // Creates the OptionUI object that implements the json OPTION.
@@ -317,6 +333,42 @@ function escapeAttr(text) {
     .replace(/>/g, "&gt;");
 }
 
+// Adds conditional dependencies between options
+function addConditionals(widgets, conditionals)
+{
+    for (const [elt, expr] of conditionals)
+    {
+        const identifierPattern = /\b[a-zA-Z_$][a-zA-Z0-9_$]*\b/g;
+        const matches = expr.match(identifierPattern) || [];
+        const variables = matches.filter(id => id in widgets);
+
+        // This is the function that evaluates the dependency options
+        // and determies if this element should be hidden or not.
+        const evaluator = (newVal) => {
+            // Collect the values of all the named widgets into the evaluation context.
+            const context = {};
+            variables.forEach((variable) => {
+                context[variable] = widgets[variable].getValue();
+            });
+            // Evaluate expr, and enable/disable elt
+            DEBUG(`Evaluating '${expr}'`);
+            if (math.evaluate(expr, context)) {
+                elt.classList.remove("hidden");
+            } else {
+                elt.classList.add("hidden");
+            }
+        };
+
+        // Register change notifications with the dependencies.
+        variables.map(id => widgets[id])
+            .forEach(w => {
+                w.onValue(evaluator);
+            });
+    }
+}
+
+
+
 //
 // Base class for the UI widgets that edit a single configuration option.
 //
@@ -336,18 +388,30 @@ class OptionUI {
         this.options = options;
     }
 
+    changeCallback = [];
+    
     // Registers a CALLBACK for when the option's value changes.
     //
     onChange(callback) {
-        this.changeCallback = callback;
+        this.changeCallback.push(callback);
     }
     
     // Internal method to invoke the change callback
     //
     change(newVal) {
-        if (this.changeCallback) {
-            this.changeCallback(newVal);
-        }
+        this.changeCallback.forEach((c) => c(newVal));
+        this.triggerValueCallbacks();
+    }
+
+    valueCallback = [];
+
+    // Registers a CALLBACK for whenever a new value gets set, either internally or by user.
+    onValue(callback) {
+        this.valueCallback.push(callback);
+    }
+    triggerValueCallbacks()
+    {
+        this.valueCallback.forEach((c) => c());
     }
     
     // Returns a DOM element to insert into the UI to allow the config option

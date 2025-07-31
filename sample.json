@@ -48,6 +48,11 @@
             "default" : "Value2"
         },
         {
+            "name" : "selectDependent",
+            "type" : "text",
+            "dependsOn" : "equalText(sampleSelect, \"Value3\")"
+        },
+        {
             "name" : "samplePassword",
             "type" : "password",
             "label" : "Sample Password",
@@ -60,6 +65,23 @@
             "label" : "Sample File",
             "description" : "A chooser for file paths, with optional type filter",
             "accept" : "image/*"
+        },
+        {
+            "name" : "sampleFeatureEnabled",
+            "type" : "boolean",
+            "label" : "Sample Feature Enabled"
+        },
+        {
+            "name" : "sampleFeatureMessage",
+            "type" : "text",
+            "label" : "Message for sample feature",
+            "dependsOn" : "sampleFeatureEnabled"
+        },
+        {
+            "name" : "sampleFeatureLength",
+            "type" : "number",
+            "label" : "Length for sample feature",
+            "dependsOn" : "sampleFeatureEnabled"
         }
 
     ]
