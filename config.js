@@ -229,8 +229,8 @@ function createConfig(configStr)
         }
 
         // Add conditional enablement if specified.
-        if (option.dependsOn) {
-            conditionals.push([uielt, option.dependsOn]);
+        if (option.showIf) {
+            conditionals.push([uielt, option.showIf]);
         }
         
         ca.appendChild(uielt);

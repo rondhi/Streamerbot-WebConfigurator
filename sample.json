@@ -48,11 +48,6 @@
             "default" : "Value2"
         },
         {
-            "name" : "selectDependent",
-            "type" : "text",
-            "dependsOn" : "sampleSelect == \"Value3\" && sampleBoolean"
-        },
-        {
             "name" : "samplePassword",
             "type" : "password",
             "label" : "Sample Password",
@@ -66,22 +61,49 @@
             "description" : "A chooser for file paths, with optional type filter",
             "accept" : "image/*"
         },
+
         {
-            "name" : "sampleFeatureEnabled",
+            "name" : "sampleBooleanDependency",
             "type" : "boolean",
-            "label" : "Sample Feature Enabled"
+            "label" : "Sample Boolean Dependency"
         },
         {
             "name" : "sampleFeatureMessage",
             "type" : "text",
             "label" : "Message for sample feature",
-            "dependsOn" : "sampleFeatureEnabled"
+            "showIf" : "sampleBooleanDependency"
         },
         {
             "name" : "sampleFeatureLength",
             "type" : "number",
             "label" : "Length for sample feature",
-            "dependsOn" : "sampleFeatureEnabled"
+            "showIf" : "sampleBooleanDependency"
+        },
+
+        {
+            "name" : "sampleNumericDependency",
+            "type" : "slider",
+            "label" : "A numeric option",
+            "min" : 0,
+            "max" : 10,
+            "default" : 2
+        },
+        {
+            "name" : "sampleSelectionDependency",
+            "type" : "select",
+            "label" : "A number driving other options",
+            "values" : [
+                "me",
+                "you",
+                "them"
+            ],
+            "showIf" : "sampleNumericDependency > 5"
+        },
+        {
+            "name" : "anotherOption",
+            "type" : "text",
+            "label" : "Depends on selection",
+            "showIf" : "sampleNumericDependency > 5 and sampleSelectionDependency == \"them\""
         }
 
     ]

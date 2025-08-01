@@ -76,7 +76,8 @@ You specify the editable options of your extension in a JSON document. This docu
             "label" : "Welcome message",           // Label to display (optional, defaults to "name")
             "description" : "New viewer greeting", // small help text (optional)
             "default" : "Welcome to the stream!",  // Initial value (optional)
-
+            "showIf" : "anOptionName", // Only show if expression is true (optional)
+            
             // Other options depending on "type":
             
             // For "number" or "slider" type:
@@ -109,6 +110,8 @@ Example JSON:
 ```json
 {
     "title" : "Sample Configuration Title",
+    "extensionText" : "Sample Extension",
+    "extensionURL" : "https://example.com/SampleExtension",
     "options" : [
         {
             "name" : "sampleString",
@@ -131,7 +134,7 @@ Example JSON:
             "name" : "sampleSlider",
             "type" : "slider",
             "label" : "Sample Slider",
-            "description" : "A number slider with required min, max, and increments",
+            "description" : "A number slider with required min, max, and optional inc-rements",
             "min" : "0",
             "max" : "100",
             "inc" : "1",
@@ -167,6 +170,50 @@ Example JSON:
             "label" : "Sample File",
             "description" : "A chooser for file paths, with optional type filter",
             "accept" : "image/*"
+        },
+
+        {
+            "name" : "sampleBooleanDependency",
+            "type" : "boolean",
+            "label" : "Sample Boolean Dependency"
+        },
+        {
+            "name" : "sampleFeatureMessage",
+            "type" : "text",
+            "label" : "Message for sample feature",
+            "showIf" : "sampleBooleanDependency"
+        },
+        {
+            "name" : "sampleFeatureLength",
+            "type" : "number",
+            "label" : "Length for sample feature",
+            "showIf" : "sampleBooleanDependency"
+        },
+
+        {
+            "name" : "sampleNumericDependency",
+            "type" : "slider",
+            "label" : "A numeric option",
+            "min" : 0,
+            "max" : 10,
+            "default" : 2
+        },
+        {
+            "name" : "sampleSelectionDependency",
+            "type" : "select",
+            "label" : "A number driving other options",
+            "values" : [
+                "me",
+                "you",
+                "them"
+            ],
+            "showIf" : "sampleNumericDependency > 5"
+        },
+        {
+            "name" : "anotherOption",
+            "type" : "text",
+            "label" : "Depends on selection",
+            "showIf" : "sampleNumericDependency > 5 and sampleSelectionDependency == \"them\""
         }
 
     ]
@@ -174,6 +221,19 @@ Example JSON:
 ```
 
 To see what this looks like in action and to edit your own configuration, visit [Sample Configuration Page](https://webconfig.whazzittoya.com/?connect=false&configUrl=sample.json)
+
+### "showIf": Dependent Configurations
+
+Some options may only make sense to show when other options have certain values. The `showIf` property is a javascript-like expression of other option names that when true, will show the option, and hide it otherwise.
+
+The expression can have the usual simple operators:
+* comparisons: < <= > >= == !=
+* logical: and && or || not ! ?:
+* arithmetic: + - * / % ( )
+* functions: abs ceil floor log min max round sqrt
+* is one of a list of values: x in (a, b, c), x not in (a, b, c)
+
+The simplest, and probably most useful expression, is simply the name of another simple boolean option: When it is checked, the option shows, and is hidden when the option is unchecked.
 
 ## Contact Info
 
