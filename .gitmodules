@@ -1,0 +1,3 @@
+[submodule "filtrex"]
+	path = filtrex
+	url = https://github.com/joewalnes/filtrex.git

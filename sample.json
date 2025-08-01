@@ -50,7 +50,7 @@
         {
             "name" : "selectDependent",
             "type" : "text",
-            "dependsOn" : "equalText(sampleSelect, \"Value3\")"
+            "dependsOn" : "sampleSelect == \"Value3\" && sampleBoolean"
         },
         {
             "name" : "samplePassword",

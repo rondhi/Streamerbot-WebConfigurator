@@ -310,7 +310,7 @@ function makeElt(html)
 {
     const template = document.createElement('template');
     template.innerHTML = html;
-    return element = template.content.firstElementChild;
+    return template.content.firstElementChild;
 }
 
 // Returns HTML-encoded text.
@@ -342,6 +342,8 @@ function addConditionals(widgets, conditionals)
         const matches = expr.match(identifierPattern) || [];
         const variables = matches.filter(id => id in widgets);
 
+        const compiled = compileExpression(expr);
+
         // This is the function that evaluates the dependency options
         // and determies if this element should be hidden or not.
         const evaluator = (newVal) => {
@@ -352,7 +354,10 @@ function addConditionals(widgets, conditionals)
             });
             // Evaluate expr, and enable/disable elt
             DEBUG(`Evaluating '${expr}'`);
-            if (math.evaluate(expr, context)) {
+            const evalResult = compiled(context);
+            DEBUG(`Evaluated '${expr}' => ${evalResult} (${evalResult ? "true" : "false"})`);
+            
+            if (evalResult) {
                 elt.classList.remove("hidden");
             } else {
                 elt.classList.add("hidden");
