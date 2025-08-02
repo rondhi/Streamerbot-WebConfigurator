@@ -9,6 +9,7 @@
     <script type="text/javascript" src="filtrex/src/jison.js"></script>
     <script type="text/javascript" src="filtrex/src/filtrex.js"></script>
     <script type="text/javascript" src="config.js"></script>
+    <script type="text/javascript" src="version.js"></script>
 
   </head>
   
@@ -91,7 +92,12 @@
     </div>
     <div class="footer">
       <hr/>
-      The <a href="https://github.com/WhazzItToYa/Streamerbot-WebConfigurator">Web Configurator</A> brought to you by <a href="https://whazzittoya.com">WhazzItToYa</a>
+      The <a href="https://github.com/WhazzItToYa/Streamerbot-WebConfigurator">Web Configurator</A>@<a style="font-size: smaller;" href="https://github.com/WhazzItToYa/Streamerbot-WebConfigurator/commit/" id="versionLink"></a> brought to you by <a href="https://whazzittoya.com">WhazzItToYa</a>
+      <script>
+        let versionLink = document.getElementById("versionLink");
+        versionLink.href = versionLink.href + commitId;
+        versionLink.textContent = commitId;
+      </script>
     </div>
   </body>
   
