@@ -124,7 +124,7 @@ async function initConfig()
             if (EDIT) {
                 initEditor(configStr);
             }
-            createConfig(configStr);
+            buildConfig(configStr);
         }
     } catch (e)
     {
@@ -149,7 +149,7 @@ function initEditor(config)
         enableSort: false,
         enableTransform: false,
         onChange: () => {
-            createConfig(editor.getText());
+            buildConfig(editor.getText());
         },
     });
     DEBUG(`editor is ${editor}`);
@@ -181,12 +181,15 @@ var nextId = 0;
 
 // Builds out the HTML UI for the list of config variables in CONFIG
 
-function createConfig(configStr)
+let conditionals = [];
+let widgets = {};
+
+function buildConfig(configStr)
 {
     // DEBUG(`Config value is ${configStr}`);
     let config = JSON.parse(configStr);
-    const ca = document.getElementById("configArea");
-    ca.replaceChildren();
+    const configArea = document.getElementById("configArea");
+    configArea.replaceChildren();
 
     // Set the page & header title
     const title = config.title ?? "Streamer.bot Extension Config";
@@ -205,73 +208,86 @@ function createConfig(configStr)
         extText.innerText = config.extensionText;
     }
 
-    let conditionals = [];
-    let widgets = {};
-    
+    // Build each configuration option listed.
     for (const option of config.options)
     {
-        // DEBUG(`creating config option ${option.name}, type ${option.type}`);
-
-        // Create the UI widget representing this option, and insert it
-        
-        const ui = makeOptionUI(option);
-        widgets[ui.name] = ui;
-        
-        const uielt = ui.getElement()
-        if (option.description) {
-            // DEBUG(`Trying to insert description ${option.description}`);
-            // hack: insert the description into an element with the "description" class.
-            const desc = uielt.querySelector(".description");
-            if (desc) {
-                // DEBUG(`got ${desc}`);
-                desc.textContent = option.description;
-            }
-        }
-
-        // Add conditional enablement if specified.
-        if (option.showIf) {
-            conditionals.push([uielt, option.showIf]);
-        }
-        
-        ca.appendChild(uielt);
-        
-        // populate the current stored value
-        //
-        (async () => {
-            DEBUG(`Requesting current value of ${option.name}`);
-            return client.getGlobal(option.name, true).then(({variable: {value}}) => {
-                DEBUG(`received current value of "${option.name}" = ${value}`);
-                ui.setValue(value);
-                ui.triggerValueCallbacks();
-            });
-        })().catch((error) => {
-            // If we couldn't get a current value, presumeably because
-            // it doesn't exist yet, then set the UI to contain the default value,
-            // and then trigger the change callback so that it gets stored.
-            if (option.default !== undefined) {
-                ui.setValue(option.default);
-                ui.change(option.default);
-            } else {
-                ui.triggerValueCallbacks();
-            }
-        });
-        
-        // Update the value permanently when changed.
-        //
-        if (client) {
-            ui.onChange(() => {
-                client.doAction({name: "WC - Set Config Global"},
-                                {
-                                    "globalName": option.name,
-                                    "globalValue": ui.getValue()
-                                });
-            });
-        };
-        
+        buildConfigOption(option, configArea);
     }
 
+    // Add rules for the conditionsl options.
     addConditionals(widgets, conditionals);
 }
+
+function buildConfigOption(option, parent)
+{
+    DEBUG(`creating config option ${option.name}, type ${option.type}`);
+
+    // Create the HTML UI widget representing this option, and insert it
+    
+    let ui = makeOptionUI(option);
+    let uielt = ui.getElement()
+
+    // Process any conditional expressions Add conditional enablement if specified.
+    try {
+        if (option.showIf) {
+            conditionals.push([uielt, option.showIf, compileExpression(option.showIf)]);
+        }
+    } catch (e) {
+        ui = new ErrorUI(option.name, `showIf error: ${e}`, option);
+        uielt = ui.getElement();
+    }
+
+    widgets[ui.name] = ui;
+
+
+    // Insert the option's description into any .description element that was supplied
+    if (option.description) {
+        // DEBUG(`Trying to insert description ${option.description}`);
+        const desc = uielt.querySelector(".description");
+        if (desc) {
+            // DEBUG(`got ${desc}`);
+            desc.textContent = option.description;
+        }
+    }
+
+    // Add the UI to the document
+    parent.appendChild(uielt);
+    
+    // Initialize the value of the option, either with the current global variable,
+    // or the default if the global can't be fetched.
+    //
+    (async () => {
+        DEBUG(`Requesting current value of ${option.name}`);
+        return client.getGlobal(option.name, true).then(({variable: {value}}) => {
+            DEBUG(`received current value of "${option.name}" = ${value}`);
+            ui.setValue(value);
+            ui.triggerValueCallbacks();
+        });
+    })().catch((error) => {
+        // If we couldn't get a current value, presumeably because
+        // it doesn't exist yet, then set the UI to contain the default value,
+        // and then trigger the change callback so that it gets stored.
+        if (option.default !== undefined) {
+            ui.setValue(option.default);
+            ui.change(option.default);
+        } else {
+            ui.triggerValueCallbacks();
+        }
+    });
+    
+    // Arrange for the global to be updated when the UI changes the value.
+    //
+    if (client) {
+        ui.onChange(() => {
+            client.doAction({name: "WC - Set Config Global"},
+                            {
+                                "globalName": option.name,
+                                "globalValue": ui.getValue()
+                            });
+        });
+    };
+}
+
 
 // Creates the OptionUI object that implements the json OPTION.
 function makeOptionUI(option)
@@ -295,7 +311,9 @@ function makeOptionUI(option)
                 return new FileOption(option.name, option);
             case "select":
                 return new SelectOption(option.name, option);
-            
+
+            case "group" :
+                return new GroupOption(option);
             default:
                 return new ErrorUI(option.name, `unknown option type "${option.type}"`, option);
         }
@@ -336,13 +354,11 @@ function escapeAttr(text) {
 // Adds conditional dependencies between options
 function addConditionals(widgets, conditionals)
 {
-    for (const [elt, expr] of conditionals)
+    for (const [elt, expr, compiled] of conditionals)
     {
         const identifierPattern = /\b[a-zA-Z_$][a-zA-Z0-9_$]*\b/g;
         const matches = expr.match(identifierPattern) || [];
         const variables = matches.filter(id => id in widgets);
-
-        const compiled = compileExpression(expr);
 
         // This is the function that evaluates the dependency options
         // and determies if this element should be hidden or not.
@@ -436,16 +452,56 @@ class OptionUI {
     getValue() { return undefined; }
 }
 
-// When you want to show an option that
+// When you want to show an option that isn't configured correctly.
 class ErrorUI extends OptionUI {
     constructor(name, message, options) {
         super(name, options);
         this.message = message;
     }
     getElement() {
-        return makeElt(`<div class="configOption"><label>${escapeText(this.options.label ?? this.name)}: <div class="errorDescription">${escapeText(this.message)}</div></label>`);
+        return makeElt(`<div class="configOption"><label>${escapeText(this.options.label ?? this.name ?? "<anonymous>")}: <div class="errorDescription">${escapeText(this.message)}</div></label>`);
     }
     
+}
+
+// An option that represents a group of nested options.
+class GroupOption extends OptionUI
+{
+    static #optionId = 0;
+    
+    constructor(option) {
+        // groups don't really need names, since they don't set a variable
+        // or get referenced on any other way. But we'll give them one anyway.
+        super(option.name || `group-${GroupOption.#optionId++}`, option);
+
+        let label = option.label;
+        let desc = option.description;
+
+        this.#elt = makeElt(
+            `<div class="configOption optionGroup">`
+                +
+                ((label || desc) ? `<label>${escapeText(this.options.label || "")}
+                   <div class="description"></div></label>
+                 </label>` : "")
+                +
+                `<div class="nestedOptions"></div>
+             </div>`
+        );
+
+        const parent = this.#elt.querySelector(".nestedOptions");
+        for (const o of option.options)
+        {
+            buildConfigOption(o, parent);
+        }
+    }
+
+    #elt
+    
+    getElement() {
+        return this.#elt;
+    }
+    
+
 }
 
 // Base class for UI based on the <input> tag.

@@ -68,18 +68,24 @@
             "label" : "Sample Boolean Dependency"
         },
         {
-            "name" : "sampleFeatureMessage",
-            "type" : "text",
-            "label" : "Message for sample feature",
-            "showIf" : "sampleBooleanDependency"
+            "name" : "sampleGroup",
+            "type" : "group",
+            "label" : "This is a subgroup",
+            "description" : "This is for nesting things together",
+            "showIf" : "sampleBooleanDependency",
+            "options" : [
+                {
+                    "name" : "sampleFeatureMessage",
+                    "type" : "text",
+                    "label" : "Message for sample feature"
+                },
+                {
+                    "name" : "sampleFeatureLength",
+                    "type" : "number",
+                    "label" : "Length for sample feature"
+                }
+            ]
         },
-        {
-            "name" : "sampleFeatureLength",
-            "type" : "number",
-            "label" : "Length for sample feature",
-            "showIf" : "sampleBooleanDependency"
-        },
-
         {
             "name" : "sampleNumericDependency",
             "type" : "slider",

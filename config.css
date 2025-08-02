@@ -103,6 +103,22 @@ h1, h2, h3 {
     }
 }
 
+.configOption.optionGroup {
+    flex-direction: column;
+}
+
+.optionGroup label {
+    display: block;
+}
+
+.optionGroup label .description {
+    display: inline;
+}
+
+.nestedOptions {
+    margin-left: 2em;
+}
+
 .hidden {
     display: none;
 }
