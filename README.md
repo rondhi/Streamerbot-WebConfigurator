@@ -71,7 +71,7 @@ You specify the editable options of your extension in a JSON document. This docu
     "options" : [
         {
             "name" : "welcomeMessage", // S.bot variable name
-            "type" : "text" | "password" | "number" | "bool" | "select" | "file",
+            "type" : "text" | "password" | "number" | "bool" | "select" | "file" | "group",
             
             "label" : "Welcome message",           // Label to display (optional, defaults to "name")
             "description" : "New viewer greeting", // small help text (optional)
@@ -178,18 +178,24 @@ Example JSON:
             "label" : "Sample Boolean Dependency"
         },
         {
-            "name" : "sampleFeatureMessage",
-            "type" : "text",
-            "label" : "Message for sample feature",
-            "showIf" : "sampleBooleanDependency"
+            "name" : "sampleGroup",
+            "type" : "group",
+            "label" : "This is a subgroup",
+            "description" : "This is for nesting things together",
+            "showIf" : "sampleBooleanDependency",
+            "options" : [
+                {
+                    "name" : "sampleFeatureMessage",
+                    "type" : "text",
+                    "label" : "Message for sample feature"
+                },
+                {
+                    "name" : "sampleFeatureLength",
+                    "type" : "number",
+                    "label" : "Length for sample feature"
+                }
+            ]
         },
-        {
-            "name" : "sampleFeatureLength",
-            "type" : "number",
-            "label" : "Length for sample feature",
-            "showIf" : "sampleBooleanDependency"
-        },
-
         {
             "name" : "sampleNumericDependency",
             "type" : "slider",
@@ -234,6 +240,14 @@ The expression can have the usual simple operators:
 * is one of a list of values: x in (a, b, c), x not in (a, b, c)
 
 The simplest, and probably most useful expression, is simply the name of another simple boolean option: When it is checked, the option shows, and is hidden when the option is unchecked.
+
+### Option Groups
+
+You can create a group of options with an option of `"type" : "group"`. The `"name"` is optional.
+
+The group can have an optional `"label"` & `"description"` displayed above the config options, which is appropriate for just breaking up options into related functional groups.
+
+Groups can also have `"showIf"` to conditionally show/hide the whole group, just like other options.
 
 ## Contact Info
 
