@@ -142,6 +142,19 @@ input[type="number"] {
     width: 10ch;
 }
 
+/* Passord hide/show */
+.toggle-eye {
+    font-size: 150%;
+    width: 1.5em;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.password-container input {
+    padding-right: 1em; /* space for the icon */
+}
+
 /* Styles for the editor */
 
 #configEditor {

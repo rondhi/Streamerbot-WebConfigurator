@@ -29,6 +29,7 @@ window.addEventListener("load", () => {
     document.getElementById("landingEndpoint").value  = store.getItem("sbEndpoint") ?? "/";
     document.getElementById("landingPassword").value  = store.getItem("sbPassword") ?? "";
     document.getElementById("landingSecure").checked  = (store.getItem("sbSecure") === "true");
+    makePasswordToggler(document.getElementById("landingPasswordContainer"));
 
     document.getElementById("landingPageConnect").addEventListener("click", attemptConnection);
 
@@ -558,6 +559,27 @@ class PasswordOption extends InputOption {
         super(name, "password", options);
     }
 
+    getElement() {
+        const elt = super.getElement();
+        // Add a show/hide password button.
+        makePasswordToggler(elt);
+        return elt;
+    }
+
+}
+
+function makePasswordToggler(container) {
+    container.classList.add("password-container");
+    const button = makeElt('<button class="toggle-eye" aria-label="Show password">&#x1f441;</button>');
+    const input = container.querySelector("input");
+    button.addEventListener("click", () => {
+        const isHidden = input.type === "password";
+        
+        input.type = isHidden ? "text" : "password";
+        button.setAttribute("aria-label", isHidden ? "Hide password" : "Show password");
+        button.textContent = isHidden ? '\u{1F648}' : '\u{1F441}';
+    });
+    input.after(button);
 }
 
 // Specific Option UI for numbers.
