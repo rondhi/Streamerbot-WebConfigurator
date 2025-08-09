@@ -799,9 +799,59 @@ function buildParamsString() {
   return GENERATOR_BASE_URL + paramStr;
 }
 
+function updateParamsDisplay() {
+  // Display the updated generated URL in the input element.
+  document.getElementById("generated-url").innerHTML = buildParamsString();
+}
+
+
+async function resetToDefaults() {
+  Object.keys(paramsObject).forEach((key) => {
+    delete paramsObject[key];
+  });
+  document.getElementById("generated-url").innerHTML = buildParamsString();
+}
+
 function initUrlParamGenerator() {
   DEBUG("Initializing URL Params Generator");
   document.getElementById("generated-url-container").style.display = "block";
+
+  const getButtonGenerator = document.getElementById("getUrlParameters");
+  getButtonGenerator.addEventListener("click", () =>
+  {
+      const url = document.getElementById("generated-url").textContent;
+      navigator.clipboard.writeText(url)
+          .then(() => {
+              getButtonGenerator.innerText = "Copied!";
+              setTimeout(() => {
+                  getButtonGenerator.innerText = "Copy URL to clipboard";
+              },
+                          5000);
+          })
+          .catch(err => {
+              console.error("Failed to copy text: ", err);
+          });
+  });
+
+  const getButtonClear = document.getElementById("clearUrlParameters");
+  getButtonClear.addEventListener("click", () =>
+    {
+      resetToDefaults()
+      .then(() => {
+        getButtonClear.innerText = "URL parameters Cleared!";
+        setTimeout(() => {
+          getButtonClear.innerText = "Clear URL Parameters";
+        },
+        5000);
+      })
+      .catch(err => {
+        console.error("Failed to clear url parameters: ", err);
+      });
+    });
+}
+
+function isFloat(num) {
+  return num % 1 !== 0;
 }
 
 function updateUrlParams(option, changedValue) {
@@ -848,41 +898,5 @@ function updateUrlParams(option, changedValue) {
     delete paramsObject[key];
   }
 
-  // Display the updated generated URL in the input element.
-  document.getElementById("generated-url").innerHTML = buildParamsString();
-}
-
-function isFloat(num) {
-  return num % 1 !== 0;
-}
-
-function resetToDefaults() {
-  Object.keys(paramsObject).forEach((key) => {
-    delete paramsObject[key];
-  });
-  document.getElementById("generated-url").innerHTML = buildParamsString();
-}
-
-/**
- * Copies the generated URL to the clipboard.
- */
-function copyToClipboard() {
-  // Get the generated URL from the input element and write it to the clipboard.
-  const url = document.getElementById("generated-url").textContent;
-  navigator.clipboard.writeText(url);
-
-  // Check if notifications are allowed and display a success message.
-  if (Notification.permission === "granted") {
-    new Notification("URL copied!", {
-      body: "The URL was successfully copied!",
-    });
-  } else if (Notification.permission !== "denied") {
-    Notification.requestPermission().then((permission) => {
-      if (permission === "granted") {
-        new Notification("URL copied!", {
-          body: "The URL was successfully copied!",
-        });
-      }
-    });
-  }
+  updateParamsDisplay();
 }
