@@ -838,7 +838,7 @@ function initUrlParamGenerator() {
     {
       resetToDefaults()
       .then(() => {
-        getButtonClear.innerText = "URL parameters Cleared!";
+        getButtonClear.innerText = "Cleared!";
         setTimeout(() => {
           getButtonClear.innerText = "Clear URL Parameters";
         },
@@ -873,11 +873,11 @@ function updateUrlParams(option, changedValue) {
     if (option.inc !== undefined && isFloat(option.inc)) {
       updatedValue = parseFloat(changedValue);
       isDefaultValue = parseFloat(option.default) === parseFloat(changedValue);
-      console.log(`changedValue '${changedValue}', parsedFloat '${updatedValue}'`);
+      DEBUG(`changedValue '${changedValue}', parsedFloat '${updatedValue}'`);
     } else {
       updatedValue = parseInt(changedValue);
       isDefaultValue = parseInt(option.default) === parseInt(changedValue);
-      console.log(`changedValue '${changedValue}', parsedInt '${updatedValue}'`);
+      DEBUG(`changedValue '${changedValue}', parsedInt '${updatedValue}'`);
     }
   } else {
     // Value is a string
