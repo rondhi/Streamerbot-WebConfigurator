@@ -4,6 +4,8 @@ const CONFIG_URL = urlParams.get('configUrl');
 const CONNECT = (urlParams.get('connect') ?? "true").match(/true/i);;
 const EDIT = (urlParams.get('edit') ?? "false").match(/true/i);
 const DEBUGMODE = (urlParams.get('debug') ?? "false").match(/true/i);
+const GENERATOR = (urlParams.get('generator') ?? "false").match(/true/i);
+const GENERATOR_BASE_URL = urlParams.get('baseUrl');
 
 function DEBUG(...args)
 {
@@ -124,6 +126,9 @@ async function initConfig()
             DEBUG(`Got config`);
             if (EDIT) {
                 initEditor(configStr);
+            }
+            if (GENERATOR) {
+                initUrlParamGenerator();
             }
             buildConfig(configStr);
         }
@@ -278,7 +283,7 @@ function buildConfigOption(option, parent)
     
     // Arrange for the global to be updated when the UI changes the value.
     //
-    if (client) {
+    if (client && !GENERATOR) {
         ui.onChange(() => {
             client.doAction({name: "WC - Set Config Global"},
                             {
@@ -287,6 +292,11 @@ function buildConfigOption(option, parent)
                             });
         });
     };
+    if (GENERATOR) {
+        ui.onChange(() => {
+            updateUrlParams(option, ui.getValue());
+        });
+    }
 }
 
 
@@ -763,4 +773,116 @@ class SelectOption extends OptionUI
     setValue(newVal) {
         this.selectElt.value = newVal;
     }
+}
+
+let paramsObject = {};
+
+function buildParamsString() {
+  let params = "";
+  Object.keys(paramsObject).forEach((key) => {
+    const v = paramsObject[key];
+    if (v !== null && v !== "") {
+      if (params.length > 0) {
+        params += "&";
+      }
+      params += `${key}=${v}`;
+    }
+  });
+
+  let paramStr = ""; // Initialize the parameter string
+  if (params.length > 0) {
+    paramStr = `?${params}`; // Build the URL parameters string
+  } else {
+    paramStr = ""; // If no parameters are modified, set the parameter string to empty
+  }
+
+  return GENERATOR_BASE_URL + paramStr;
+}
+
+function initUrlParamGenerator() {
+  DEBUG("Initializing URL Params Generator");
+  document.getElementById("generated-url-container").style.display = "block";
+}
+
+function updateUrlParams(option, changedValue) {
+  const key = option.name;
+  let updatedValue;
+  let isDefaultValue;
+  if (option.disabled) {
+    return;
+  }
+
+  // Check if input is not a checkbox
+  if (option.type === "checkbox") {
+    updatedValue = option.checked ? true : false; // Get the checked state of the checkbox (or null for other types)
+    isDefaultValue = option.default === changedValue; // compare value bool
+  }
+  // Check if the input is valid and update the base URL accordingly
+  // Value is number
+  else if (typeof changedValue === "number" || option.type === "slider") {
+    if (option.inc !== undefined && isFloat(option.inc)) {
+      updatedValue = parseFloat(changedValue);
+      isDefaultValue = parseFloat(option.default) === parseFloat(changedValue);
+      console.log(`changedValue '${changedValue}', parsedFloat '${updatedValue}'`);
+    } else {
+      updatedValue = parseInt(changedValue);
+      isDefaultValue = parseInt(option.default) === parseInt(changedValue);
+      console.log(`changedValue '${changedValue}', parsedInt '${updatedValue}'`);
+    }
+  } else {
+    // Value is a string
+    if (key.toLowerCase().includes("password")) {
+      updatedValue = btoa(changedValue); // base64 encode passwords for obfuscation, not encryption
+    } else {
+      updatedValue = encodeURIComponent(changedValue); // URI Encode all non-password strings
+    }
+    isDefaultValue = option.default === changedValue; // compare value strings    
+  }
+  paramsObject[key] = updatedValue; // Update the parameters object with the new value
+
+  // Don't show URL parameter if using a default value
+  if (
+    (option.default !== undefined && isDefaultValue) ||
+    key.includes("ignoreThis")
+  ) {
+    delete paramsObject[key];
+  }
+
+  // Display the updated generated URL in the input element.
+  document.getElementById("generated-url").innerHTML = buildParamsString();
+}
+
+function isFloat(num) {
+  return num % 1 !== 0;
+}
+
+function resetToDefaults() {
+  Object.keys(paramsObject).forEach((key) => {
+    delete paramsObject[key];
+  });
+  document.getElementById("generated-url").innerHTML = buildParamsString();
+}
+
+/**
+ * Copies the generated URL to the clipboard.
+ */
+function copyToClipboard() {
+  // Get the generated URL from the input element and write it to the clipboard.
+  const url = document.getElementById("generated-url").textContent;
+  navigator.clipboard.writeText(url);
+
+  // Check if notifications are allowed and display a success message.
+  if (Notification.permission === "granted") {
+    new Notification("URL copied!", {
+      body: "The URL was successfully copied!",
+    });
+  } else if (Notification.permission !== "denied") {
+    Notification.requestPermission().then((permission) => {
+      if (permission === "granted") {
+        new Notification("URL copied!", {
+          body: "The URL was successfully copied!",
+        });
+      }
+    });
+  }
 }
