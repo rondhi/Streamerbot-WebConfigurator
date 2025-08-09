@@ -249,6 +249,20 @@ The group can have an optional `"label"` & `"description"` displayed above the c
 
 Groups can also have `"showIf"` to conditionally show/hide the whole group, just like other options.
 
+## URL Parameter Generator
+
+You can create a form to create URL parameters for webpages that you can use as an OBS Browser Source by using these URL parameters:
+
+  `&generator=true`
+
+  `&baseUrl={desiredUrl}`
+
+Notes: 
+* The `baseUrl` parameter is optional. You can add it to make it prefix the generated URL parameters to a URL
+* By prefixing `ignoreThis` to an option name, you can prevent that option from creating a URL param. Combine with `showIf` to create dynamic forms
+* Click the `Clear URL Parameters` button to clear out any unwanted URL parameters
+* Click the `Copy URL to Clipboard` button to copy the URL 
+
 ## Contact Info
 
 For bug reports, or feature requests, [open an issue](https://github.com/WhazzItToYa/Streamerbot-WebConfigurator/issues).
