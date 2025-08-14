@@ -285,7 +285,7 @@ function buildConfigOption(option, parent)
     //
     if (client && !GENERATOR) {
         ui.onChange(() => {
-            client.doAction({name: "WC - Set Config Global"},
+            client.doAction({id: "76814ac7-11d7-4675-ba3e-8c79fc640cb7"},
                             {
                                 "globalName": option.name,
                                 "globalValue": ui.getValue()
