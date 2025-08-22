@@ -5,7 +5,7 @@ const CONNECT = (urlParams.get('connect') ?? "true").match(/true/i);;
 const EDIT = (urlParams.get('edit') ?? "false").match(/true/i);
 const DEBUGMODE = (urlParams.get('debug') ?? "false").match(/true/i);
 const GENERATOR = (urlParams.get('generator') ?? "false").match(/true/i);
-const GENERATOR_BASE_URL = urlParams.get('baseUrl');
+const GENERATOR_BASE_URL = urlParams.get('baseUrl') || '';
 
 function DEBUG(...args)
 {
