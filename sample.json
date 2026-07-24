@@ -81,8 +81,7 @@
             "name" : "sampleFile",
             "type" : "file",
             "label" : "Sample File",
-            "description" : "A chooser for file paths, with optional type filter",
-            "accept" : "image/*"
+            "description" : "A box for entering a file or folder path"
         },
         
         {

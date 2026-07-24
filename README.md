@@ -100,8 +100,10 @@ You specify the editable options of your extension in a JSON document. This docu
             "style" : "textblock" // mutli-line text, one item per line.
             
             // For "file" (a file picker)
-
-            "accept" : "image/*,video/*,.webp", // The extensions or mime types to filter by
+            //
+            // NOTE: This is the same as a "text" option, since the browser's file chooser
+            // doesn't actually give you the full path to a file for privacy reasons.
+    
                        
         },
         ... more options ...

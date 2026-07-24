@@ -397,16 +397,19 @@ function addConditionals(widgets, conditionals)
 }
 
 
-
+//////////////////////////////////////////////////////////////////////
 //
 // Base class for the UI widgets that edit a single configuration option.
 //
+
 class OptionUI {
     static #nextId = 0;
 
     name; // the name of the streamer.bot global variable of the config option.
     options; // The JSON object
 
+    // CONSTRUCTOR
+    //
     // NAME: the name of the global variable that holds the option's value.
     // OPTIONS: The json object of the options spec.
     //
@@ -419,13 +422,13 @@ class OptionUI {
 
     changeCallback = [];
     
-    // Registers a CALLBACK for when the option's value changes.
+    // Registers a CALLBACK for when the option's value is changed by the user.
     //
     onChange(callback) {
         this.changeCallback.push(callback);
     }
     
-    // Internal method to invoke the change callback
+    // Internal method for subclasses to invoke the change callback
     //
     triggerChange(newVal) {
         this.changeCallback.forEach((c) => c(newVal));
@@ -434,17 +437,21 @@ class OptionUI {
 
     valueCallback = [];
 
-    // Registers a CALLBACK for whenever a new value gets set, either internally or by user.
+    // Registers a CALLBACK for whenever this option UI's value is set.
+    // Callbacks should only update internal form state, not externally-visible side effects.
+    //
     onValue(callback) {
         this.valueCallback.push(callback);
     }
+
+    // Invokes the value callbacks to clllUpdates any form state 
     triggerValueCallbacks()
     {
         this.valueCallback.forEach((c) => c());
     }
     
     // Returns a DOM element to insert into the UI to allow the config option
-    // to be edited.
+    // to be edited. This will only be invoked once in the lifetime of the option.
     //
     getElement() {
         return makeElt(`<div class="configOption">Bogus option "${escapeText(this.name)}"</div>`);
@@ -460,7 +467,12 @@ class OptionUI {
     getValue() { return undefined; }
 }
 
-// When you want to show an option that isn't configured correctly.
+//////////////////////////////////////////////////////////////////////
+//
+// ErrorUI
+// 
+// An option that displays a configuration error
+//
 class ErrorUI extends OptionUI {
     constructor(name, message, options) {
         super(name, options);
@@ -472,12 +484,16 @@ class ErrorUI extends OptionUI {
     
 }
 
+//////////////////////////////////////////////////////////////////////
+//
+// GroupOption
+//
 // An option that represents a group of nested options.
 
 class GroupOption extends OptionUI
 {
     static #optionId = 0;
-    
+
     constructor(option) {
         // groups don't really need names, since they don't set a variable
         // or get referenced on any other way. But we'll give them one anyway.
@@ -511,7 +527,11 @@ class GroupOption extends OptionUI
     }
 }
 
-// Base class for UI based on the <input> tag.
+//////////////////////////////////////////////////////////////////////
+//
+// InputOption
+//
+// Base class for UI that renders a simple <input> tag of a given type
 //
 class InputOption extends OptionUI
 {
@@ -525,7 +545,8 @@ class InputOption extends OptionUI
 
     inputElt; // The actual HTMLInputElement for editing the value,
               // set as a side-effect of getElement()
-    
+
+    // Creates an HTML element containing an INPUT element
     getElement() {
         const elt = makeElt(
         `<div class="configOption">
@@ -550,6 +571,10 @@ class InputOption extends OptionUI
     }
 }
 
+//////////////////////////////////////////////////////////////////////
+//
+// TextOption
+//
 // Specific Option UI for string options.
 
 class TextOption extends InputOption {
@@ -558,6 +583,12 @@ class TextOption extends InputOption {
     }
 }
 
+//////////////////////////////////////////////////////////////////////
+//
+// TextBlockOption
+//
+// Option UI for setting a block of text.
+//
 class TextBlockOption extends OptionUI {
     constructor(name, options) {
         super(name, options);
@@ -590,6 +621,10 @@ class TextBlockOption extends OptionUI {
     }
 }
 
+//////////////////////////////////////////////////////////////////////
+//
+// PasswordOption
+//
 // Specific Option UI for secrets.
 
 class PasswordOption extends InputOption {
@@ -620,7 +655,10 @@ function makePasswordToggler(container) {
     input.after(button);
 }
 
-// Specific Option UI for numbers.
+//////////////////////////////////////////////////////////////////////
+//
+// NumberOption : Specific Option UI for entering numbers
+//
 // OPTIONS: may contain:
 //   * min : the minimum value
 //   * max : the maximum value
@@ -643,7 +681,10 @@ class NumberOption extends InputOption {
     
 }
 
-// Specific Option UI for numbers.
+//////////////////////////////////////////////////////////////////////
+//
+// NumberSliderOption : Specific Option UI for numbers via a slider
+//
 // OPTIONS: must contain:
 //   * min : the minimum value
 //   * max : the maximum value
@@ -652,7 +693,8 @@ class NumberOption extends InputOption {
 //
 // Note: This is a type of Number option, but there are enough internal differences
 // to warrant an entirely custom implementation. Perhaps if warranted later,
-// some refactoring to allow the slider to extend Number is warranted.
+// some refactoring to allow the slider to extend Number.
+
 class NumberSliderOption extends OptionUI {
     constructor(name, options) {
         super(name, options);
@@ -721,7 +763,9 @@ class NumberSliderOption extends OptionUI {
     }
 }
 
-// Specific Option UI for booleans.
+//////////////////////////////////////////////////////////////////////
+// 
+// BoolOption : Specific Option UI for booleans.
 
 class BoolOption extends InputOption {
     constructor(name, options) {
@@ -736,24 +780,18 @@ class BoolOption extends InputOption {
         this.inputElt.checked = newVal;
     }
 }
-  
-// Specific Option UI for choosing a file path.
 
-class FileOption extends InputOption {
-    constructor(name, options) {
-        super(name, "file", options);
-    }
-    getElement() {
-        const elt = super.getElement();
-        if (this.options.accept != null) this.inputElt.accept = this.options.accept;
-        return elt;
-    }
-    setValue(newVal) {
-        // You can't set the file of a file picker, for security reasons.
-    }
+//////////////////////////////////////////////////////////////////////
+//
+// FileOption: Specific Option UI for choosing a file path.
+
+class FileOption extends TextOption {
 }
-  
-// Specific Option UI for choosing from a list.
+
+//////////////////////////////////////////////////////////////////////
+//
+// SelectOption : Specific Option UI for choosing from a list.
+//
 // OPTIONS:
 //   values : Array containing the list of items, which may be either:
 //            * A single VALUE
@@ -803,6 +841,12 @@ class SelectOption extends OptionUI
     }
 }
 
+//////////////////////////////////////////////////////////////////////
+//
+// ListOption : A widget for creating a list of items.
+//
+// Items are currently limited to strings
+
 class ListOption extends OptionUI
 {
     constructor(name, options) {
@@ -811,7 +855,7 @@ class ListOption extends OptionUI
         const style = (options.style ?? "csv").toLowerCase();
         
         // Delegate the actual UI to a text widget, and we'll
-        // wrap it to convert the string to/from a list.
+        // interact with it internally to convert the text to a list.
         if (style === "csv") {
             this.#uiWidget = new TextOption(name, options);
             this.#separator = ", ";
@@ -852,7 +896,5 @@ class ListOption extends OptionUI
     getElement() {
         return this.#uiWidget.getElement();
     }
-    
-    
 }
 
