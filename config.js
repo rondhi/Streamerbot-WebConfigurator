@@ -6,6 +6,8 @@ const EDIT = (urlParams.get('edit') ?? 'false').match(/true/i);
 const DEBUGMODE = (urlParams.get('debug') ?? 'false').match(/true/i);
 const GENERATOR = (urlParams.get('generator') ?? 'false').match(/true/i);
 let GENERATOR_BASE_URL = urlParams.get('baseUrl') || '';
+let GVAR_PREFIX = urlParams.get('gvarPrefix') || '';
+if (GVAR_PREFIX.length > 0) console.log('gvarPrefix', GVAR_PREFIX);
 
 function DEBUG(...args) {
   if (DEBUGMODE) {
@@ -214,14 +216,16 @@ function buildConfig(configStr) {
 
   // Build each configuration option listed.
   for (const option of config.options) {
+    // console.log('option.name',option.name);
     buildConfigOption(option, configArea);
   }
-
+  
   // Add rules for the conditionsl options.
   addConditionals(widgets, conditionals);
 }
 
 function buildConfigOption(option, parent) {
+  const optionName = `${GVAR_PREFIX}${capitalizeFirstLetter(GVAR_PREFIX, option.name)}`;
   DEBUG(`creating config option ${option.name}, type ${option.type}`);
 
   // Create the HTML UI widget representing this option, and insert it
@@ -262,11 +266,11 @@ function buildConfigOption(option, parent) {
   // or the default if the global can't be fetched.
   //
   (async () => {
-    DEBUG(`Requesting current value of ${option.name}`);
+    DEBUG(`Requesting current value of ${optionName}`);
     return client
-      .getGlobal(option.name, true)
+      .getGlobal(optionName, true)
       .then(({ variable: { value } }) => {
-        DEBUG(`received current value of "${option.name}" = ${value}`);
+        DEBUG(`received current value of "${optionName}" = ${value}`);
         ui.setValue(value);
         ui.triggerValueCallbacks();
       });
@@ -284,12 +288,14 @@ function buildConfigOption(option, parent) {
 
   // Arrange for the global to be updated when the UI changes the value.
   //
-  if (client && !GENERATOR) {
+  if (client &&
+    !GENERATOR &&
+    option.ignoreThis !== true) {
     ui.onChange(() => {
       client.doAction(
         { id: '76814ac7-11d7-4675-ba3e-8c79fc640cb7' },
         {
-          globalName: option.name,
+          globalName: optionName,
           globalValue: ui.getValue(),
         }
       );
@@ -303,6 +309,10 @@ function buildConfigOption(option, parent) {
       updateUrlParams(option, ui.getValue());
     });
   }
+}
+
+function capitalizeFirstLetter(prefix, incomingString) {
+  return prefix.length > 0 ? incomingString.charAt(0).toUpperCase() + incomingString.slice(1) : incomingString;
 }
 
 // Creates the OptionUI object that implements the json OPTION.
