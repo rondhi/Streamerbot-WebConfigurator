@@ -11,7 +11,7 @@ if (GVAR_PREFIX.length > 0) console.log('gvarPrefix', GVAR_PREFIX);
 
 function DEBUG(...args) {
   if (DEBUGMODE) {
-    console.debug(`WEBCONFIG: ${new Date().toISOString()}`, ...args);
+    console.debug(`WEBCONFIG: ${(new Date()).toISOString()}`, ...args);
   }
 }
 
@@ -26,27 +26,21 @@ window.addEventListener('load', () => {
 
   DEBUG('Loaded');
   const store = window.localStorage;
-  document.getElementById('landingHost').value =
-    store.getItem('sbHost') ?? '127.0.0.1';
-  document.getElementById('landingPort').value =
-    store.getItem('sbPort') ?? '8080';
-  document.getElementById('landingEndpoint').value =
-    store.getItem('sbEndpoint') ?? '/';
-  document.getElementById('landingPassword').value =
-    store.getItem('sbPassword') ?? '';
-  document.getElementById('landingSecure').checked =
-    store.getItem('sbSecure') === 'true';
+  document.getElementById('landingHost').value = store.getItem('sbHost') ?? '127.0.0.1';
+  document.getElementById('landingPort').value = store.getItem('sbPort') ?? '8080';
+  document.getElementById('landingEndpoint').value = store.getItem('sbEndpoint') ?? '/';
+  document.getElementById('landingPassword').value = store.getItem('sbPassword') ?? '';
+  document.getElementById('landingSecure').checked = store.getItem('sbSecure') === 'true';
   makePasswordToggler(document.getElementById('landingPasswordContainer'));
 
-  document
-    .getElementById('landingPageConnect')
-    .addEventListener('click', attemptConnection);
+  document.getElementById('landingPageConnect').addEventListener('click', attemptConnection);
 
   helpTimer = window.setTimeout(() => {
     document.getElementById('landingHelp').style.display = 'block';
   }, 2000);
 
   attemptConnection();
+
 });
 
 // Tries to open a streamerbot client, aborting any currently in progress.
@@ -144,7 +138,7 @@ async function initConfig() {
 function initEditor(config) {
   DEBUG('Initializing editor');
   document.getElementById('configEditor').style.display = 'block';
-  // document.getElementById("jsonEditor").value = configStr;
+  // document.getElementById('jsonEditor').value = configStr;
   // create the editor
   const container = document.getElementById('jsonEditor');
   const editor = new JSONEditor(container, {
@@ -216,11 +210,10 @@ function buildConfig(configStr) {
 
   // Build each configuration option listed.
   for (const option of config.options) {
-    // console.log('option.name',option.name);
     buildConfigOption(option, configArea);
   }
   
-  // Add rules for the conditionsl options.
+  // Add rules for the conditional options.
   addConditionals(widgets, conditionals);
 }
 
@@ -229,6 +222,7 @@ function buildConfig(configStr) {
 
 function buildConfigOption(option, parent)
 {
+    const optionName = `${GVAR_PREFIX}${capitalizeFirstLetter(GVAR_PREFIX, option.name)}`;
     DEBUG(`creating config option ${option.name}, type ${option.type}`);
 
     // Create the HTML UI widget representing this option, and insert it
@@ -252,7 +246,7 @@ function buildConfigOption(option, parent)
     // Insert the option's description into any .description element that was supplied
     if (option.description) {
         // DEBUG(`Trying to insert description ${option.description}`);
-        const desc = uielt.querySelector(".description");
+        const desc = uielt.querySelector('.description');
         if (desc) {
             // DEBUG(`got ${desc}`);
             desc.textContent = option.description;
@@ -267,8 +261,8 @@ function buildConfigOption(option, parent)
     //
     (async () => {
         DEBUG(`Requesting current value of ${option.name}`);
-        return client.getGlobal(option.name, true).then(({variable: {value}}) => {
-            DEBUG(`received current value of "${option.name}" = ${value}`);
+        return client.getGlobal(optionName, true).then(({variable: {value}}) => {
+            DEBUG(`received current value of '${option.name}' = ${value}`);
             ui.setValue(value);
             ui.triggerValueCallbacks();
         });
@@ -281,98 +275,32 @@ function buildConfigOption(option, parent)
         } else {
             ui.setValue(option.default);
             ui.triggerChange(option.default);
-function buildConfigOption(option, parent) {
-  const optionName = `${GVAR_PREFIX}${capitalizeFirstLetter(GVAR_PREFIX, option.name)}`;
-  DEBUG(`creating config option ${option.name}, type ${option.type}`);
-
-  // Create the HTML UI widget representing this option, and insert it
-
-  let ui = makeOptionUI(option);
-  let uielt = ui.getElement();
-
-  // Process any conditional expressions Add conditional enablement if specified.
-  try {
-    if (option.showIf) {
-      conditionals.push([
-        uielt,
-        option.showIf,
-        compileExpression(option.showIf),
-      ]);
-    }
-  } catch (e) {
-    ui = new ErrorUI(option.name, `showIf error: ${e}`, option);
-    uielt = ui.getElement();
-  }
-
-  widgets[ui.name] = ui;
-
-  // Insert the option's description into any .description element that was supplied
-  if (option.description) {
-    // DEBUG(`Trying to insert description ${option.description}`);
-    const desc = uielt.querySelector('.description');
-    if (desc) {
-      // DEBUG(`got ${desc}`);
-      desc.textContent = option.description;
-    }
-  }
-
-  // Add the UI to the document
-  parent.appendChild(uielt);
-
-  // Initialize the value of the option, either with the current global variable,
-  // or the default if the global can't be fetched.
-  //
-  (async () => {
-    DEBUG(`Requesting current value of ${optionName}`);
-    return client
-      .getGlobal(optionName, true)
-      .then(({ variable: { value } }) => {
-        DEBUG(`received current value of "${optionName}" = ${value}`);
-        ui.setValue(value);
-        ui.triggerValueCallbacks();
-      });
-  })().catch((error) => {
-    // If we couldn't get a current value, presumeably because
-    // it doesn't exist yet, then set the UI to contain the default value,
-    // and then trigger the change callback so that it gets stored.
-    if (option.default !== undefined) {
-      ui.setValue(option.default);
-      ui.change(option.default);
-    } else {
-      ui.triggerValueCallbacks();
-    }
-  });
-
-  // Arrange for the global to be updated when the UI changes the value.
-  //
-  if (client &&
-    !GENERATOR &&
-    option.ignoreThis !== true) {
-    ui.onChange(() => {
-      client.doAction(
-        { id: '76814ac7-11d7-4675-ba3e-8c79fc640cb7' },
-        {
-          globalName: optionName,
-          globalValue: ui.getValue(),
         }
-      );
-      /* client.executeCodeTrigger(triggerName,
-        {}
-      ); */
     });
     
     // Arrange for the global to be updated when the UI changes the value.
     //
-    if (client) {
-        ui.onChange(() => {
-            client.doAction({name: "WC - Set Config Global"},
-                            {
-                                "globalName": option.name,
-                                "globalValue": ui.getValue()
-                            });
+    if (client &&
+      !GENERATOR &&
+      option.ignoreThis !== true
+    ) {
+      ui.onChange(() => {
+        client.doAction(
+          // { name: 'WC - Set Config Global'},
+          { id: '76814ac7-11d7-4675-ba3e-8c79fc640cb7' },
+          {
+            'globalName': optionName,
+            'globalValue': ui.getValue()
+          });
             
         });
     }
+
+    if (GENERATOR) {
+      ui.onChange(() => {
+      updateUrlParams(option, ui.getValue());
+    });
+  }
 }
 
 // Creates the OptionUI object that implements the json OPTION.
@@ -381,28 +309,28 @@ function makeOptionUI(option)
     try {
         switch (option.type.toLowerCase())
         {
-            case "string":
-            case "text":
+            case 'string':
+            case 'text':
                 return new TextOption(option.name, option);
-            case "textblock":
+            case 'textblock':
                 return new TextBlockOption(option.name, option);
-            case "password":
+            case 'password':
                 return new PasswordOption(option.name, option);
-            case "slider":
+            case 'slider':
                 return new NumberSliderOption(option.name, option);
-            case "number":
+            case 'number':
                 return new NumberOption(option.name, option);
-            case "bool":
-            case "boolean":
+            case 'bool':
+            case 'boolean':
                 return new BoolOption(option.name, option);
-            case "file":
+            case 'file':
                 return new FileOption(option.name, option);
-            case "select":
+            case 'select':
                 return new SelectOption(option.name, option);
-            case "list":
+            case 'list':
                 return new ListOption(option.name, option);
             
-            case "group" :
+            case 'group' :
                 return new GroupOption(option);
             default:
                 return new ErrorUI(option.name, `unknown option type "${option.type}"`, option);
@@ -410,51 +338,11 @@ function makeOptionUI(option)
     } catch (e)
     {
         return new ErrorUI(option.name, `${e}`, option);
-  }
-  if (GENERATOR) {
-    ui.onChange(() => {
-      updateUrlParams(option, ui.getValue());
-    });
-  }
+    }
 }
 
 function capitalizeFirstLetter(prefix, incomingString) {
   return prefix.length > 0 ? incomingString.charAt(0).toUpperCase() + incomingString.slice(1) : incomingString;
-}
-
-// Creates the OptionUI object that implements the json OPTION.
-function makeOptionUI(option) {
-  try {
-    switch (option.type) {
-      case 'string':
-      case 'text':
-        return new TextOption(option.name, option);
-      case 'password':
-        return new PasswordOption(option.name, option);
-      case 'slider':
-        return new NumberSliderOption(option.name, option);
-      case 'number':
-        return new NumberOption(option.name, option);
-      case 'bool':
-      case 'boolean':
-        return new BoolOption(option.name, option);
-      case 'file':
-        return new FileOption(option.name, option);
-      case 'select':
-        return new SelectOption(option.name, option);
-
-      case 'group':
-        return new GroupOption(option);
-      default:
-        return new ErrorUI(
-          option.name,
-          `unknown option type "${option.type}"`,
-          option
-        );
-    }
-  } catch (e) {
-    return new ErrorUI(option.name, `${e}`, option);
-  }
 }
 
 // Makes an element from HTML text
@@ -503,12 +391,12 @@ function addConditionals(widgets, conditionals)
             // Evaluate expr, and enable/disable elt
             DEBUG(`Evaluating '${expr}'`);
             const evalResult = compiled(context);
-            DEBUG(`Evaluated '${expr}' => ${evalResult} (${evalResult ? "true" : "false"})`);
+            DEBUG(`Evaluated '${expr}' => ${evalResult} (${evalResult ? 'true' : 'false'})`);
             
             if (evalResult) {
-                elt.classList.remove("hidden");
+                elt.classList.remove('hidden');
             } else {
-                elt.classList.add("hidden");
+                elt.classList.add('hidden');
             }
         };
 
@@ -684,7 +572,7 @@ class InputOption extends OptionUI
     );
     this.inputElt = elt.querySelector('input');
 
-        this.inputElt.addEventListener("change", (event) => {
+        this.inputElt.addEventListener('change', (event) => {
             this.triggerChange(this.getValue());
         });
         return elt;
@@ -736,9 +624,9 @@ class TextBlockOption extends OptionUI {
           <div class="optionWidget"><textarea class="optionInput" id="${this.id}"></textarea></div>
          </div>`
         );
-        this.inputElt = elt.querySelector("textarea");
+        this.inputElt = elt.querySelector('textarea');
 
-        this.inputElt.addEventListener("change", (event) => {
+        this.inputElt.addEventListener('change', (event) => {
             this.triggerChange(this.getValue());
         });
         return elt;
@@ -831,54 +719,57 @@ class NumberOption extends InputOption {
 // some refactoring to allow the slider to extend Number.
 
 class NumberSliderOption extends OptionUI {
-  constructor(name, options) {
-    super(name, options);
+    constructor(name, options) {
+        super(name, options);
 
-    if (!('min' in this.options) || !('max' in this.options)) {
-      throw new Error('Sliders require min and max properties');
+        if (!('min' in this.options) ||
+            !('max' in this.options))
+        {
+            throw new Error('Sliders require min and max properties');
+        }
     }
-  }
 
-  numberElt;
-  sliderElt;
-
-  getElement() {
-    const elt = makeElt(
-      `<div class="configOption">
-          <label for="${this.id}">${escapeText(
-        this.options.label ?? this.name
-      )}: <div class="description"></div></label>
+    numberElt;
+    sliderElt;
+    
+    getElement() {
+        const elt = makeElt(
+        `<div class="configOption">
+          <label for="${this.id}">${escapeText(this.options.label ?? this.name)}: <div class="description"></div></label>
           <div class="optionWidget">
-            <input class="optionSlider" style="text-align: right" id="${
-              this.id
-            }-slider" type="range" />
+            <input class="optionSlider" style="text-align: right" id="${this.id}-slider" type="range" />
             <input class="optionInput" id="${this.id}-number" type="number"/>
           </div>
          </div>`
-    );
-    this.numberElt = elt.querySelector(`#${this.id}-number`);
-    this.sliderElt = elt.querySelector(`#${this.id}-slider`);
+        );
+        this.numberElt = elt.querySelector(`#${this.id}-number`);
+        this.sliderElt = elt.querySelector(`#${this.id}-slider`);
 
-    // Configure both input widgets
-    this.numberElt.min = this.options.min;
-    this.sliderElt.min = this.options.min;
+        // Configure both input widgets
+        this.numberElt.min = this.options.min;
+        this.sliderElt.min = this.options.min;
 
-    this.numberElt.max = this.options.max;
-    this.sliderElt.max = this.options.max;
+        this.numberElt.max = this.options.max;
+        this.sliderElt.max = this.options.max;
+
+        if ('inc' in this.options) {
+            this.numberElt.step = this.options.inc;
+            this.sliderElt.step = this.options.inc;
+        }
 
         // Sync both widgets when either changes, and fire the change handler.
-        this.numberElt.addEventListener("change", (event) => {
+        this.numberElt.addEventListener('change', (event) => {
             let val = this.numberElt.value;
             this.sliderElt.value = val;
             this.triggerChange(val);
         });
-        this.sliderElt.addEventListener("change", (event) => {
+        this.sliderElt.addEventListener('change', (event) => {
             let val = this.sliderElt.value;
             this.numberElt.value = val;
             this.triggerChange(val);
         });
         // Also provide feedback as it's being slid
-        this.sliderElt.addEventListener("input", (event) => {
+        this.sliderElt.addEventListener('input', (event) => {
             let val = this.sliderElt.value;
             this.numberElt.value = val;
         });
@@ -889,33 +780,10 @@ class NumberSliderOption extends OptionUI {
         return Number.parseFloat(this.numberElt.value);
     }
 
-    // Sync both widgets when either changes, and fire the change handler.
-    this.numberElt.addEventListener('change', (event) => {
-      let val = this.numberElt.value;
-      this.sliderElt.value = val;
-      this.change(val);
-    });
-    this.sliderElt.addEventListener('change', (event) => {
-      let val = this.sliderElt.value;
-      this.numberElt.value = val;
-      this.change(val);
-    });
-    // Also provide feedback as it's being slid
-    this.sliderElt.addEventListener('input', (event) => {
-      let val = this.sliderElt.value;
-      this.numberElt.value = val;
-    });
-    return elt;
-  }
-
-  getValue() {
-    return this.numberElt.value;
-  }
-
-  setValue(newVal) {
-    this.sliderElt.value = newVal;
-    this.numberElt.value = newVal;
-  }
+    setValue(newVal) {
+        this.sliderElt.value = newVal;
+        this.numberElt.value = newVal;
+    }
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -941,6 +809,17 @@ class BoolOption extends InputOption {
 // FileOption: Specific Option UI for choosing a file path.
 
 class FileOption extends TextOption {
+  constructor(name, options) {
+      super(name, 'file', options);
+  }
+  getElement() {
+      const elt = super.getElement();
+      if (this.options.accept != null) this.inputElt.accept = this.options.accept;
+      return elt;
+  }
+  setValue(newVal) {
+      // You can't set the file of a file picker, for security reasons.
+  }
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -982,8 +861,8 @@ class SelectOption extends OptionUI {
            ${options}
            </select></div>`
         );
-        this.selectElt = elt.querySelector("select");
-        this.selectElt.addEventListener("change", (event) => {
+        this.selectElt = elt.querySelector('select');
+        this.selectElt.addEventListener('change', (event) => {
             this.triggerChange(this.getValue());
         });
         return elt;
@@ -1074,7 +953,8 @@ function isFloat(num) {
 }
 
 function updateUrlParams(option, changedValue) {
-  const key = option.name;
+  const optionName = `${GVAR_PREFIX}${capitalizeFirstLetter(GVAR_PREFIX, option.name)}`;
+  const key = optionName;
   let updatedValue;
   let isDefaultValue;
   if (option.disabled) {
@@ -1135,19 +1015,19 @@ class ListOption extends OptionUI
     constructor(name, options) {
         super(name, options);
 
-        const style = (options.style ?? "csv").toLowerCase();
+        const style = (options.style ?? 'csv').toLowerCase();
         
         // Delegate the actual UI to a text widget, and we'll
         // interact with it internally to convert the text to a list.
-        if (style === "csv") {
+        if (style === 'csv') {
             this.#uiWidget = new TextOption(name, options);
-            this.#separator = ", ";
+            this.#separator = ', ';
             this.#splitter = (str) => str.split(/\s*,\s*/);
-        } else if (style === "textblock") {
+        } else if (style === 'textblock') {
             this.#uiWidget = new TextBlockOption(name, options);
             // Splits at line breaks, but ignores final blank lines.
             this.#splitter = (str) => str.split(/\r?\n/).filter((line, i, arr) => !(i === arr.length - 1 && line === ''));
-            this.#separator = "\n";
+            this.#separator = '\n';
         } else {
             this.#uiWidget = new ErrorUI(name, `Unrecognized list style "${style}"`, options);
         }
@@ -1164,7 +1044,7 @@ class ListOption extends OptionUI
     setValue(listVal) {
         DEBUG(`LIST Setting value to "${listVal}"`);
         // If this value came from streamer.bot's global, then it is a JSON string.
-        if (typeof listVal === "string") {
+        if (typeof listVal === 'string') {
             listVal = JSON.parse(listVal);
         }
         const textVal = listVal.join(this.#separator);
