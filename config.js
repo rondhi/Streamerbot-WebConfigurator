@@ -224,6 +224,63 @@ function buildConfig(configStr) {
   addConditionals(widgets, conditionals);
 }
 
+// Creates and adds the UI for the given config OPTION, and adds it to
+// the end of the PARENT container.
+
+function buildConfigOption(option, parent)
+{
+    DEBUG(`creating config option ${option.name}, type ${option.type}`);
+
+    // Create the HTML UI widget representing this option, and insert it
+    
+    let ui = makeOptionUI(option);
+    let uielt = ui.getElement()
+
+    // Process any conditional expressions Add conditional enablement if specified.
+    try {
+        if (option.showIf) {
+            conditionals.push([uielt, option.showIf, compileExpression(option.showIf)]);
+        }
+    } catch (e) {
+        ui = new ErrorUI(option.name, `showIf error: ${e}`, option);
+        uielt = ui.getElement();
+    }
+
+    widgets[ui.name] = ui;
+
+
+    // Insert the option's description into any .description element that was supplied
+    if (option.description) {
+        // DEBUG(`Trying to insert description ${option.description}`);
+        const desc = uielt.querySelector(".description");
+        if (desc) {
+            // DEBUG(`got ${desc}`);
+            desc.textContent = option.description;
+        }
+    }
+
+    // Add the UI to the document
+    parent.appendChild(uielt);
+    
+    // Initialize the value of the option, either with the current global variable,
+    // or the default if the global can't be fetched.
+    //
+    (async () => {
+        DEBUG(`Requesting current value of ${option.name}`);
+        return client.getGlobal(option.name, true).then(({variable: {value}}) => {
+            DEBUG(`received current value of "${option.name}" = ${value}`);
+            ui.setValue(value);
+            ui.triggerValueCallbacks();
+        });
+    })().catch((error) => {
+        // If we couldn't get a current value, presumeably because
+        // it doesn't exist yet, then set the UI to contain the default value,
+        // and then trigger the change callback so that it gets stored.
+        if (option.default === undefined) {
+            ui.triggerValueCallbacks();
+        } else {
+            ui.setValue(option.default);
+            ui.triggerChange(option.default);
 function buildConfigOption(option, parent) {
   const optionName = `${GVAR_PREFIX}${capitalizeFirstLetter(GVAR_PREFIX, option.name)}`;
   DEBUG(`creating config option ${option.name}, type ${option.type}`);
@@ -303,6 +360,56 @@ function buildConfigOption(option, parent) {
         {}
       ); */
     });
+    
+    // Arrange for the global to be updated when the UI changes the value.
+    //
+    if (client) {
+        ui.onChange(() => {
+            client.doAction({name: "WC - Set Config Global"},
+                            {
+                                "globalName": option.name,
+                                "globalValue": ui.getValue()
+                            });
+            
+        });
+    }
+}
+
+// Creates the OptionUI object that implements the json OPTION.
+function makeOptionUI(option)
+{
+    try {
+        switch (option.type.toLowerCase())
+        {
+            case "string":
+            case "text":
+                return new TextOption(option.name, option);
+            case "textblock":
+                return new TextBlockOption(option.name, option);
+            case "password":
+                return new PasswordOption(option.name, option);
+            case "slider":
+                return new NumberSliderOption(option.name, option);
+            case "number":
+                return new NumberOption(option.name, option);
+            case "bool":
+            case "boolean":
+                return new BoolOption(option.name, option);
+            case "file":
+                return new FileOption(option.name, option);
+            case "select":
+                return new SelectOption(option.name, option);
+            case "list":
+                return new ListOption(option.name, option);
+            
+            case "group" :
+                return new GroupOption(option);
+            default:
+                return new ErrorUI(option.name, `unknown option type "${option.type}"`, option);
+        }
+    } catch (e)
+    {
+        return new ErrorUI(option.name, `${e}`, option);
   }
   if (GENERATOR) {
     ui.onChange(() => {
@@ -377,111 +484,119 @@ function escapeAttr(text) {
 }
 
 // Adds conditional dependencies between options
-function addConditionals(widgets, conditionals) {
-  for (const [elt, expr, compiled] of conditionals) {
-    const identifierPattern = /\b[a-zA-Z_$][a-zA-Z0-9_$]*\b/g;
-    const matches = expr.match(identifierPattern) || [];
-    const variables = matches.filter((id) => id in widgets);
+function addConditionals(widgets, conditionals)
+{
+    for (const [elt, expr, compiled] of conditionals)
+    {
+        const identifierPattern = /\b[a-zA-Z_$][a-zA-Z0-9_.$]*\b/g;
+        const matches = expr.match(identifierPattern) || [];
+        const variables = matches.filter(id => id in widgets);
 
-    // This is the function that evaluates the dependency options
-    // and determies if this element should be hidden or not.
-    const evaluator = (newVal) => {
-      // Collect the values of all the named widgets into the evaluation context.
-      const context = {};
-      variables.forEach((variable) => {
-        context[variable] = widgets[variable].getValue();
-      });
-      // Evaluate expr, and enable/disable elt
-      DEBUG(`Evaluating '${expr}'`);
-      const evalResult = compiled(context);
-      DEBUG(
-        `Evaluated '${expr}' => ${evalResult} (${
-          evalResult ? 'true' : 'false'
-        })`
-      );
+        // This is the function that evaluates the dependency options
+        // and determies if this element should be hidden or not.
+        const evaluator = (newVal) => {
+            // Collect the values of all the named widgets into the evaluation context.
+            const context = {};
+            variables.forEach((variable) => {
+                context[variable] = widgets[variable].getValue();
+            });
+            // Evaluate expr, and enable/disable elt
+            DEBUG(`Evaluating '${expr}'`);
+            const evalResult = compiled(context);
+            DEBUG(`Evaluated '${expr}' => ${evalResult} (${evalResult ? "true" : "false"})`);
+            
+            if (evalResult) {
+                elt.classList.remove("hidden");
+            } else {
+                elt.classList.add("hidden");
+            }
+        };
 
-      if (evalResult) {
-        elt.classList.remove('hidden');
-      } else {
-        elt.classList.add('hidden');
-      }
-    };
-
-    // Register change notifications with the dependencies.
-    variables
-      .map((id) => widgets[id])
-      .forEach((w) => {
-        w.onValue(evaluator);
-      });
-  }
+        // Register change notifications with the dependencies.
+        variables.map(id => widgets[id])
+            .forEach(w => {
+                w.onValue(evaluator);
+            });
+    }
 }
 
+
+//////////////////////////////////////////////////////////////////////
 //
 // Base class for the UI widgets that edit a single configuration option.
 //
+
 class OptionUI {
-  static #nextId = 0;
+    static #nextId = 0;
 
-  name; // the name of the streamer.bot global variable of the config option.
-  options; // The JSON object
+    name; // the name of the streamer.bot global variable of the config option.
+    options; // The JSON object
 
-  // NAME: the name of the global variable that holds the option's value.
-  // OPTIONS: The json object of the options spec.
-  //
-  constructor(name, options) {
-    // DEBUG(`Making option ${name}`);
-    this.name = name;
-    this.id = `input-${nextId++}`;
-    this.options = options;
-  }
+    // CONSTRUCTOR
+    //
+    // NAME: the name of the global variable that holds the option's value.
+    // OPTIONS: The json object of the options spec.
+    //
+    constructor(name, options) {
+        // DEBUG(`Making option ${name}`);
+        this.name = name;
+        this.id = `input-${nextId++}`;
+        this.options = options;
+    }
 
-  changeCallback = [];
+    changeCallback = [];
+    
+    // Registers a CALLBACK for when the option's value is changed by the user.
+    //
+    onChange(callback) {
+        this.changeCallback.push(callback);
+    }
+    
+    // Internal method for subclasses to invoke the change callback
+    //
+    triggerChange(newVal) {
+        this.changeCallback.forEach((c) => c(newVal));
+        this.triggerValueCallbacks();
+    }
 
-  // Registers a CALLBACK for when the option's value changes.
-  //
-  onChange(callback) {
-    this.changeCallback.push(callback);
-  }
+    valueCallback = [];
 
-  // Internal method to invoke the change callback
-  //
-  change(newVal) {
-    this.changeCallback.forEach((c) => c(newVal));
-    this.triggerValueCallbacks();
-  }
+    // Registers a CALLBACK for whenever this option UI's value is set.
+    // Callbacks should only update internal form state, not externally-visible side effects.
+    //
+    onValue(callback) {
+        this.valueCallback.push(callback);
+    }
 
-  valueCallback = [];
+    // Invokes the value callbacks to clllUpdates any form state 
+    triggerValueCallbacks()
+    {
+        this.valueCallback.forEach((c) => c());
+    }
+    
+    // Returns a DOM element to insert into the UI to allow the config option
+    // to be edited. This will only be invoked once in the lifetime of the option.
+    //
+    getElement() {
+        return makeElt(`<div class="configOption">Bogus option "${escapeText(this.name)}"</div>`);
+    }
 
-  // Registers a CALLBACK for whenever a new value gets set, either internally or by user.
-  onValue(callback) {
-    this.valueCallback.push(callback);
-  }
-  triggerValueCallbacks() {
-    this.valueCallback.forEach((c) => c());
-  }
+    // Sets the UI to the given VALUE. VALUE should be the appropriate logical
+    // type for the option.
+    //
+    setValue(value) {}
 
-  // Returns a DOM element to insert into the UI to allow the config option
-  // to be edited.
-  //
-  getElement() {
-    return makeElt(
-      `<div class="configOption">Bogus option "${escapeText(this.name)}"</div>`
-    );
-  }
-
-  // Sets the UI to the given VALUE. VALUE should be the appropriate logical
-  // type for the option.
-  //
-  setValue(value) {}
-
-  // Gets the current value from the UI, as the appropriate logical type.
-  //
-  getValue() {
-    return undefined;
-  }
+    // Gets the current value from the UI, as the appropriate logical type.
+    //
+    getValue() { return undefined; }
 }
 
-// When you want to show an option that isn't configured correctly.
+//////////////////////////////////////////////////////////////////////
+//
+// ErrorUI
+// 
+// An option that displays a configuration error
+//
 class ErrorUI extends OptionUI {
   constructor(name, message, options) {
     super(name, options);
@@ -498,22 +613,28 @@ class ErrorUI extends OptionUI {
   }
 }
 
+//////////////////////////////////////////////////////////////////////
+//
+// GroupOption
+//
 // An option that represents a group of nested options.
-class GroupOption extends OptionUI {
-  static #optionId = 0;
 
-  constructor(option) {
-    // groups don't really need names, since they don't set a variable
-    // or get referenced on any other way. But we'll give them one anyway.
-    super(option.name || `group-${GroupOption.#optionId++}`, option);
+class GroupOption extends OptionUI
+{
+    static #optionId = 0;
 
-    let label = option.label;
-    let desc = option.description;
+    constructor(option) {
+        // groups don't really need names, since they don't set a variable
+        // or get referenced on any other way. But we'll give them one anyway.
+        super(option.name || `group-${GroupOption.#optionId++}`, option);
 
-    this.#elt = makeElt(
-      `<div class="configOption optionGroup">` +
-        (label || desc
-          ? `<label>${escapeText(this.options.label || '')}
+        let label = option.label;
+        let desc = option.description;
+
+        this.#elt = makeElt(
+            `<div class="configOption optionGroup">`
+                +
+                ((label || desc) ? `<label>${escapeText(this.options.label || "")}
                    <div class="description"></div></label>
                  </label>`
           : '') +
@@ -527,45 +648,51 @@ class GroupOption extends OptionUI {
     }
   }
 
-  #elt;
-
-  getElement() {
-    return this.#elt;
-  }
+    #elt
+    
+    getElement() {
+        return this.#elt;
+    }
 }
 
-// Base class for UI based on the <input> tag.
+//////////////////////////////////////////////////////////////////////
 //
-class InputOption extends OptionUI {
-  // NAME, OPTIONS: See OptionUI
-  // TYPE: the "type" attribute of the input.
+// InputOption
+//
+// Base class for UI that renders a simple <input> tag of a given type
+//
+class InputOption extends OptionUI
+{
+    // NAME, OPTIONS: See OptionUI
+    // TYPE: the "type" attribute of the input.
 
-  constructor(name, type, options) {
-    super(name, options);
-    this.type = type;
-  }
+    constructor(name, type, options) {
+        super(name, options);
+        this.type = type;
+    }
 
-  inputElt; // The actual HTMLInputElement for editing the value,
-  // set as a side-effect of getElement()
+    inputElt; // The actual HTMLInputElement for editing the value,
+              // set as a side-effect of getElement()
 
-  getElement() {
-    const elt = makeElt(
-      `<div class="configOption">
-          <label for="${this.id}">${escapeText(
-        this.options.label ?? this.name
-      )}: <div class="description"></div></label>
-          <div class="optionWidget"><input class="optionInput" id="${
-            this.id
-          }" type="${escapeAttr(this.type)}"/></div>
+    // Creates an HTML element containing an INPUT element
+    getElement() {
+        const elt = makeElt(
+        `<div class="configOption">
+          <label for="${this.id}">${escapeText(this.options.label ?? this.name)}: <div class="description"></div></label>
+          <div class="optionWidget"><input class="optionInput" id="${this.id}" type="${escapeAttr(this.type)}"/></div>
          </div>`
     );
     this.inputElt = elt.querySelector('input');
 
-    this.inputElt.addEventListener('change', (event) => {
-      this.change(this.getValue());
-    });
-    return elt;
-  }
+        this.inputElt.addEventListener("change", (event) => {
+            this.triggerChange(this.getValue());
+        });
+        return elt;
+    }
+    
+    getValue() {
+        return this.inputElt.value;
+    }
 
   getValue() {
     return this.inputElt.value;
@@ -576,6 +703,10 @@ class InputOption extends OptionUI {
   }
 }
 
+//////////////////////////////////////////////////////////////////////
+//
+// TextOption
+//
 // Specific Option UI for string options.
 
 class TextOption extends InputOption {
@@ -584,6 +715,48 @@ class TextOption extends InputOption {
   }
 }
 
+//////////////////////////////////////////////////////////////////////
+//
+// TextBlockOption
+//
+// Option UI for setting a block of text.
+//
+class TextBlockOption extends OptionUI {
+    constructor(name, options) {
+        super(name, options);
+    }
+
+    inputElt; // The actual HTMLInputElement for editing the value,
+              // set as a side-effect of getElement()
+    
+    getElement() {
+        const elt = makeElt(
+        `<div class="configOption">
+          <label for="${this.id}">${escapeText(this.options.label ?? this.name)}: <div class="description"></div></label>
+          <div class="optionWidget"><textarea class="optionInput" id="${this.id}"></textarea></div>
+         </div>`
+        );
+        this.inputElt = elt.querySelector("textarea");
+
+        this.inputElt.addEventListener("change", (event) => {
+            this.triggerChange(this.getValue());
+        });
+        return elt;
+    }
+    
+    getValue() {
+        return this.inputElt.value;
+    }
+
+    setValue(newVal) {
+        this.inputElt.value = newVal;
+    }
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// PasswordOption
+//
 // Specific Option UI for secrets.
 
 class PasswordOption extends InputOption {
@@ -618,7 +791,10 @@ function makePasswordToggler(container) {
   input.after(button);
 }
 
-// Specific Option UI for numbers.
+//////////////////////////////////////////////////////////////////////
+//
+// NumberOption : Specific Option UI for entering numbers
+//
 // OPTIONS: may contain:
 //   * min : the minimum value
 //   * max : the maximum value
@@ -640,7 +816,10 @@ class NumberOption extends InputOption {
   }
 }
 
-// Specific Option UI for numbers.
+//////////////////////////////////////////////////////////////////////
+//
+// NumberSliderOption : Specific Option UI for numbers via a slider
+//
 // OPTIONS: must contain:
 //   * min : the minimum value
 //   * max : the maximum value
@@ -649,7 +828,8 @@ class NumberOption extends InputOption {
 //
 // Note: This is a type of Number option, but there are enough internal differences
 // to warrant an entirely custom implementation. Perhaps if warranted later,
-// some refactoring to allow the slider to extend Number is warranted.
+// some refactoring to allow the slider to extend Number.
+
 class NumberSliderOption extends OptionUI {
   constructor(name, options) {
     super(name, options);
@@ -686,9 +866,27 @@ class NumberSliderOption extends OptionUI {
     this.numberElt.max = this.options.max;
     this.sliderElt.max = this.options.max;
 
-    if ('inc' in this.options) {
-      this.numberElt.step = this.options.inc;
-      this.sliderElt.step = this.options.inc;
+        // Sync both widgets when either changes, and fire the change handler.
+        this.numberElt.addEventListener("change", (event) => {
+            let val = this.numberElt.value;
+            this.sliderElt.value = val;
+            this.triggerChange(val);
+        });
+        this.sliderElt.addEventListener("change", (event) => {
+            let val = this.sliderElt.value;
+            this.numberElt.value = val;
+            this.triggerChange(val);
+        });
+        // Also provide feedback as it's being slid
+        this.sliderElt.addEventListener("input", (event) => {
+            let val = this.sliderElt.value;
+            this.numberElt.value = val;
+        });
+        return elt;
+    }
+    
+    getValue() {
+        return Number.parseFloat(this.numberElt.value);
     }
 
     // Sync both widgets when either changes, and fire the change handler.
@@ -720,7 +918,9 @@ class NumberSliderOption extends OptionUI {
   }
 }
 
-// Specific Option UI for booleans.
+//////////////////////////////////////////////////////////////////////
+// 
+// BoolOption : Specific Option UI for booleans.
 
 class BoolOption extends InputOption {
   constructor(name, options) {
@@ -736,23 +936,17 @@ class BoolOption extends InputOption {
   }
 }
 
-// Specific Option UI for choosing a file path.
+//////////////////////////////////////////////////////////////////////
+//
+// FileOption: Specific Option UI for choosing a file path.
 
-class FileOption extends InputOption {
-  constructor(name, options) {
-    super(name, 'file', options);
-  }
-  getElement() {
-    const elt = super.getElement();
-    if (this.options.accept != null) this.inputElt.accept = this.options.accept;
-    return elt;
-  }
-  setValue(newVal) {
-    // You can't set the file of a file picker, for security reasons.
-  }
+class FileOption extends TextOption {
 }
 
-// Specific Option UI for choosing from a list.
+//////////////////////////////////////////////////////////////////////
+//
+// SelectOption : Specific Option UI for choosing from a list.
+//
 // OPTIONS:
 //   values : Array containing the list of items, which may be either:
 //            * A single VALUE
@@ -787,13 +981,13 @@ class SelectOption extends OptionUI {
            <select class="optionInput" id="${this.id}">
            ${options}
            </select></div>`
-    );
-    this.selectElt = elt.querySelector('select');
-    this.selectElt.addEventListener('change', (event) => {
-      this.change(this.getValue());
-    });
-    return elt;
-  }
+        );
+        this.selectElt = elt.querySelector("select");
+        this.selectElt.addEventListener("change", (event) => {
+            this.triggerChange(this.getValue());
+        });
+        return elt;
+    }
 
   getValue() {
     return this.selectElt.value;
@@ -929,3 +1123,61 @@ function updateUrlParams(option, changedValue) {
 
   updateParamsDisplay();
 }
+
+//////////////////////////////////////////////////////////////////////
+//
+// ListOption : A widget for creating a list of items.
+//
+// Items are currently limited to strings
+
+class ListOption extends OptionUI
+{
+    constructor(name, options) {
+        super(name, options);
+
+        const style = (options.style ?? "csv").toLowerCase();
+        
+        // Delegate the actual UI to a text widget, and we'll
+        // interact with it internally to convert the text to a list.
+        if (style === "csv") {
+            this.#uiWidget = new TextOption(name, options);
+            this.#separator = ", ";
+            this.#splitter = (str) => str.split(/\s*,\s*/);
+        } else if (style === "textblock") {
+            this.#uiWidget = new TextBlockOption(name, options);
+            // Splits at line breaks, but ignores final blank lines.
+            this.#splitter = (str) => str.split(/\r?\n/).filter((line, i, arr) => !(i === arr.length - 1 && line === ''));
+            this.#separator = "\n";
+        } else {
+            this.#uiWidget = new ErrorUI(name, `Unrecognized list style "${style}"`, options);
+        }
+        
+        this.#uiWidget.onChange((val) => {
+            this.triggerChange(this.getValue());
+        });
+    }
+
+    #uiWidget;  // The underling UI widget handling UI interaction
+    #separator; // The string to put between list items.
+    #splitter;  // Function that splits the UI value into an array.
+    
+    setValue(listVal) {
+        DEBUG(`LIST Setting value to "${listVal}"`);
+        // If this value came from streamer.bot's global, then it is a JSON string.
+        if (typeof listVal === "string") {
+            listVal = JSON.parse(listVal);
+        }
+        const textVal = listVal.join(this.#separator);
+        this.#uiWidget.setValue(textVal);
+    }
+    
+    getValue() {
+        const textVal = this.#uiWidget.getValue();
+        return this.#splitter(textVal);
+    }
+    
+    getElement() {
+        return this.#uiWidget.getElement();
+    }
+}
+

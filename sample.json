@@ -41,7 +41,7 @@
             "name" : "sampleSelect",
             "type" : "select",
             "label" : "Sample Selection",
-            "description" : "A list of simple values, or values and their labels",
+            "description" : "A selector among simple values, or values with custom labels",
             "values" : [
                 "Value1", "Value2", ["Value3", "Value3's Label"]
             ],
@@ -55,13 +55,35 @@
             "default" : "hunter2"
         },
         {
+            "name" : "sampleBlock",
+            "type" : "textBlock",
+            "label" : "Sample Block",
+            "description" : "A multiline text block"
+        },
+        {
+            "name" : "sampleCSVList",
+            "type" : "list",
+            "style" : "csv",
+            "label" : "Sample CSV List",
+            "description" : "A list of simple strings, separated by commas",
+            "default" : ["one", "two", "three"]
+        },
+        {
+            "name" : "sampleBlockList",
+            "type" : "list",
+            "style" : "textblock",
+            "shape" : "list",
+            "label" : "Sample Multiline List",
+            "description" : "A list of simple strings, one per line",
+            "default" : ["one", "two", "three"]
+        },
+        {
             "name" : "sampleFile",
             "type" : "file",
             "label" : "Sample File",
-            "description" : "A chooser for file paths, with optional type filter",
-            "accept" : "image/*"
+            "description" : "A box for entering a file or folder path"
         },
-
+        
         {
             "name" : "sampleBooleanDependency",
             "type" : "boolean",
